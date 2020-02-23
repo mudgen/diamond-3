@@ -1,11 +1,9 @@
 pragma solidity ^0.6.3;
 
 contract Storage {
-
     // owner of the contract
     address internal $contractOwner;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
 
     // maps function selectors to the facets that execute the functions
     // func selector => facet address
@@ -16,6 +14,5 @@ contract Storage {
 
     // maps each function selector to its position in the funcSelectors array
     // func selector => index
-    mapping(bytes4 => uint256) internal $funcSelectorToIndex;
-
+    mapping(bytes4 => uint) internal $funcSelectorToIndex;   
 }

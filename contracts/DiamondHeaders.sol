@@ -26,8 +26,8 @@ interface DiamondLoupe {
         address facet;
         bytes4[] functionSelectors;
     }
-    function totalFunctions() external view returns(uint256);
-    function functionSelectorByIndex(uint256 _index) external view returns(bytes4 functionSelector, address facet);    
+    function totalFunctions() external view returns(uint);
+    function functionSelectorByIndex(uint _index) external view returns(bytes4 functionSelector, address facet);    
     function facetFunctionSelectors(address _facet) external view returns(bytes4[] memory);
     function facets() external view returns(Facet[] memory);
     function facetAddress(bytes4 _functionSelector) external view returns(address);
