@@ -9,26 +9,31 @@ import "./DiamondFacet.sol";
 contract DiamondExample is Storage {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-   
+
     constructor() public {
         $contractOwner = msg.sender;        
         emit OwnershipTransferred(address(0), msg.sender);
 
-        // Create a DiamondFacet which implements the Diamond and
-        // Loupe interfaces
+        // Create a DiamondFacet contract which implements the Diamond and
+        // DiamondLoupe interfaces
         DiamondFacet diamondFacet = new DiamondFacet();
 
+        // Two cuts will be created and stored in this array
+        DiamondCut[] memory diamondCuts = new DiamondCut[](2);
+
+        FacetCut[] memory facetCuts;
+        bytes4[] memory functionSelectors;
+
         // First Diamond Cut
-        // Adding Diamond cut function
-        bytes4[] memory functionSelectors = new bytes4[](1);
+        // Adding cut function
+        functionSelectors = new bytes4[](1);
         functionSelectors[0] = Diamond.cut.selector;
-        FacetCut[] memory facetCuts = new FacetCut[](1);
+        facetCuts = new FacetCut[](1);
         facetCuts[0] = FacetCut({
             facet: address(diamondFacet),
             action: CutAction.Add,
             functionSelectors: functionSelectors
-        });
-        DiamondCut[] memory diamondCuts = new DiamondCut[](2);
+        });        
         diamondCuts[0] = DiamondCut({
             facetCuts: facetCuts,
             message: "Adding diamond cut function."
@@ -75,6 +80,5 @@ contract DiamondExample is Storage {
     }
 
     receive() external payable {
-
     }
 }

@@ -1,9 +1,8 @@
 pragma solidity ^0.6.3;
 
-contract Storage {
+contract DiamondStorage {
     // owner of the contract
     address internal $contractOwner;
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // maps function selectors to the facets that execute the functions
     // func selector => facet address
