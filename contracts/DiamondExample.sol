@@ -41,13 +41,11 @@ contract DiamondExample is Storage {
 
         // Second Diamond Cut
         // Adding diamond loupe functions                
-        functionSelectors = new bytes4[](6);
-        functionSelectors[0] = DiamondLoupe.totalFunctions.selector;
-        functionSelectors[1] = DiamondLoupe.functionSelectorByIndex.selector;
-        functionSelectors[2] = DiamondLoupe.facetFunctionSelectors.selector;
-        functionSelectors[3] = DiamondLoupe.facets.selector;
-        functionSelectors[4] = DiamondLoupe.facetAddress.selector;
-        functionSelectors[5] = DiamondLoupe.facetAddresses.selector;
+        functionSelectors = new bytes4[](4);
+        functionSelectors[0] = DiamondLoupe.facetFunctionSelectors.selector;
+        functionSelectors[1] = DiamondLoupe.facets.selector;
+        functionSelectors[2] = DiamondLoupe.facetAddress.selector;
+        functionSelectors[3] = DiamondLoupe.facetAddresses.selector;
         facetCuts = new FacetCut[](1);
         facetCuts[0] = FacetCut({
             facet: address(diamondFacet),
