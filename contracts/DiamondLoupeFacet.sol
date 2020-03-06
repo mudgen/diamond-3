@@ -11,20 +11,36 @@ import "./Storage.sol";
 import "./DiamondHeaders.sol";
 
 
-contract DiamondLoupeFacet is DiamondLoupe, Storage {  
+contract DiamondLoupeFacet is DiamondLoupe, Storage {
+    /// These functions are expected to be called frequently
+    /// by tools. Therefore the return values are tightly
+    /// packed for efficiency.    
     
     struct Facet {
         address facet;
         bytes4[] functionSelectors;
     }  
 
+    /// @notice Gets all facets and their selectors.
+    /// @return An array of bytes arrays containing each facet 
+    ///         and each facet's selectors.
+    /// The return value is tightly packed.
+    /// Here is the structure of the return value:
+    /// returnValue = [
+    ///     abi.encodePacked(facet, functionSelectors),
+    ///     abi.encodePacked(facet, functionSelectors),
+    ///     ...
+    /// ]    
+    /// facet is the address of a facet.    
+    /// functionSelectors consists of one or more 4 byte function selectors.
     function facets() external view override returns(bytes[] memory) {
-        uint selectorSlotLengths = $selectorSlotLengths;
-        uint selectorSlotsLength = uint128(selectorSlotLengths);       
-        uint selectorSlotLength = uint128(selectorSlotLengths >> 128);
+        uint selectorSlotsLength = $selectorSlotsLength;
+        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
+        selectorSlotsLength = uint128(selectorSlotsLength);       
+        
         uint totalSelectors = selectorSlotsLength*8;
-        if(selectorSlotLength > 0) {
-            totalSelectors -= 8 - selectorSlotLength;
+        if(numSelectorsInLastSlot > 0) {
+            totalSelectors -= 8 - numSelectorsInLastSlot;
         }
         // get default size of arrays
         uint defaultSize = totalSelectors;        
@@ -38,8 +54,8 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         // loop through function selectors
         for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
             if(selectorCount > totalSelectors) {
-                    break;
-                }
+                break;
+            }
             bytes32 slot = $selectorSlots[slotIndex];
             for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
                 selectorCount++;
@@ -94,68 +110,143 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         }
         bytes[] memory returnFacets = new bytes[](numFacets);
         for(uint facetIndex; facetIndex < numFacets; facetIndex++) {
+            uint numSelectors = numFacetSelectors[facetIndex];
+            bytes memory selectorsBytes = new bytes(4 * numSelectors);            
             bytes4[] memory selectors = facets_[facetIndex].functionSelectors;
-            uint difference = selectors.length - numFacetSelectors[facetIndex];
-            // shorten the array
-            assembly {
-                mstore(selectors, sub(mload(selectors), difference))
+            uint bytePosition;
+            for(uint i; i < numSelectors; i++) {
+                for(uint j; j < 4; j++) {
+                    selectorsBytes[bytePosition] = byte(selectors[i] << j * 8);
+                    bytePosition++;
+                }
             }
-            returnFacets[facetIndex] = abi.encodePacked(facets_[facetIndex].facet, facets_[facetIndex].functionSelectors);
+            returnFacets[facetIndex] = abi.encodePacked(facets_[facetIndex].facet, selectorsBytes);
         }
         return returnFacets;
     }
    
-   /*
-    function facetFunctionSelectors(address _facet) external view override returns(bytes4[] memory) {
-        uint funcSelectorsLength = $funcSelectors.length;
+    /// @notice Gets all the function selectors supported by a specific facet.
+    /// @param _facet The facet address.
+    /// @return A bytes array of function selectors.
+    /// The return value is tightly packed. Here is an example:
+    /// return abi.encodePacked(selector1, selector2, selector3, ...)
+    function facetFunctionSelectors(address _facet) external view override returns(bytes memory) {
+        uint selectorSlotsLength = $selectorSlotsLength;
+        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
+        selectorSlotsLength = uint128(selectorSlotsLength);               
+        uint totalSelectors = selectorSlotsLength*8;
+        if(numSelectorsInLastSlot > 0) {
+            totalSelectors -= 8 - numSelectorsInLastSlot;
+        }        
         uint numFacetSelectors;        
-        bytes4[] memory facetSelectors = new bytes4[](funcSelectorsLength);        
-        for(uint selectorsIndex; selectorsIndex < funcSelectorsLength; selectorsIndex++) {
-            bytes4 selector = $funcSelectors[selectorsIndex];            
-            if(_facet == $facets[selector]) {
-                facetSelectors[numFacetSelectors] = selector;          
-                numFacetSelectors++;
+        bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
+        uint selectorCount;
+        // loop through function selectors
+        for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
+            if(selectorCount > totalSelectors) {
+                break;
             }
-        }
-        // shorten array
-        uint difference = funcSelectorsLength - numFacetSelectors;
-        assembly {
-            mstore(facetSelectors, sub(mload(facetSelectors), difference))
-        }
-        return facetSelectors;
-    }
-
-    function facetAddresses() external view override returns(address[] memory) {
-        uint funcSelectorsLength = $funcSelectors.length;
-        address[] memory facets_ = new address[](funcSelectorsLength);
-        uint numFacets;        
-         for(uint selectorsIndex; selectorsIndex < funcSelectorsLength; selectorsIndex++) {
-            address facet = $facets[$funcSelectors[selectorsIndex]]; 
-            bool continueLoop = false;
-            for(uint facetIndex; facetIndex < numFacets; facetIndex++) {
-                if(facet == facets_[facetIndex]) {
-                    continueLoop = true;
+            bytes32 slot = $selectorSlots[slotIndex];
+            for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
+                selectorCount++;
+                if(selectorCount > totalSelectors) {
                     break;
                 }
-            }
-            if(continueLoop) {
-                continueLoop = false;
-                continue;
-            }
-            facets_[numFacets] = facet;
-            numFacets++;            
+                bytes4 selector = bytes4(slot << selectorIndex * 32);
+                address facet = address(bytes20($facets[selector]));
+                if(_facet == facet) {
+                    facetSelectors[numFacetSelectors] = selector;          
+                    numFacetSelectors++;
+                }
+            }   
         }
-        // shorten array
-        uint difference = funcSelectorsLength - numFacets;
-        assembly {
-            mstore(facets_, sub(mload(facets_), difference))
+        bytes memory returnBytes = new bytes(4 * numFacetSelectors);
+        uint bytePosition;
+        for(uint i; i < numFacetSelectors; i++) {
+            for(uint j; j < 4; j++) {
+                returnBytes[bytePosition] = byte(facetSelectors[i] << j * 8);
+                bytePosition++;
+            }
         }
-        return facets_;
+        return returnBytes;
+    }
+    
+    /// @notice Get all the facet addresses used by a diamond.
+    /// @return A byte array of tightly packed facet addresses.
+    /// Example return value: 
+    /// return abi.encodePacked(facet1, facet2, facet3, ...)
+    function facetAddresses() external view override returns(bytes memory) {
+        uint selectorSlotsLength = $selectorSlotsLength;
+        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
+        selectorSlotsLength = uint128(selectorSlotsLength);               
+        uint totalSelectors = selectorSlotsLength*8;
+        if(numSelectorsInLastSlot > 0) {
+            totalSelectors -= 8 - numSelectorsInLastSlot;
+        }        
+        address[] memory facets_ = new address[](totalSelectors);
+        uint numFacets;
+        uint selectorCount;
+        // loop through function selectors
+        for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
+            if(selectorCount > totalSelectors) {
+                break;
+            }
+            bytes32 slot = $selectorSlots[slotIndex];
+            for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
+                selectorCount++;
+                if(selectorCount > totalSelectors) {
+                    break;
+                }
+                bytes4 selector = bytes4(slot << selectorIndex * 32);
+                address facet = address(bytes20($facets[selector]));
+                bool continueLoop = false;
+                for(uint facetIndex; facetIndex < numFacets; facetIndex++) {
+                    if(facet == facets_[facetIndex]) {
+                        continueLoop = true;
+                        break;
+                    }
+                }
+                if(continueLoop) {
+                    continueLoop = false;
+                    continue;
+                }
+                facets_[numFacets] = facet;
+                numFacets++;
+            }
+        }
+        
+        bytes memory returnBytes = new bytes(20 * numFacets);
+        uint bytePosition;
+        for(uint i; i < numFacets; i++) {
+            for(uint j; j < 20; j++) {
+                returnBytes[bytePosition] = byte(bytes20(facets_[i]) << j * 8);
+                bytePosition++;
+            }
+        }
+        return returnBytes;
     }
 
+    /// @notice Gets the facet that supports the given selector.
+    /// @dev If facet is not found return address(0).
+    /// @param _functionSelector The function selector.
+    /// @return The facet address.
     function facetAddress(bytes4 _functionSelector) external view override returns(address) {
-        return $facets[_functionSelector];    
+        return address(bytes20($facets[_functionSelector]));
     }
-*/
+
+    function getArrayLengths() external view returns(uint, uint) {
+        return (uint128($selectorSlotsLength), uint128($selectorSlotsLength >> 128));
+    }
     
+  function getArray() external view returns(bytes32[] memory) {
+        uint selectorSlotsLength = $selectorSlotsLength;
+        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
+        selectorSlotsLength = uint128(selectorSlotsLength);
+        bytes32[] memory array = new bytes32[](selectorSlotsLength);
+        for(uint i; i < selectorSlotsLength; i++) {
+            array[i] = $selectorSlots[i];
+        }
+        return array;                
+    }
+
 }

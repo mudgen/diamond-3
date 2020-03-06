@@ -8,12 +8,12 @@ interface Diamond {
     /// This argument is tightly packed for gas efficiency
     /// Here is the structure of _diamondCut:
     /// _diamondCut = [
-    ///     abi.encodePacked(facet, functionSelectors),
-    ///     abi.encodePacked(facet, functionSelectors),
+    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
+    ///     abi.encodePacked(facet, sel1, sel2, sel4, ...),
     ///     ...
     /// ]    
     /// facet is the address of a facet    
-    /// functionSelectors consists of one or more 4 byte function selectors    
+    /// sel1, sel2, sel3 etc. are four-byte function selectors    
     function diamondCut(bytes[] calldata _diamondCut) external;
     event DiamondCut(bytes[] _diamondCut);    
 }
@@ -54,7 +54,18 @@ interface DiamondLoupe {
     function facetAddresses() external view returns(bytes memory);
 
     /// @notice Gets the facet that supports the given selector.
+    /// @dev If facet is not found return address(0).
     /// @param _functionSelector The function selector.
     /// @return The facet address.
     function facetAddress(bytes4 _functionSelector) external view returns(address);    
+}
+
+interface ERC165 {
+    /// @notice Query if a contract implements an interface
+    /// @param interfaceID The interface identifier, as specified in ERC-165
+    /// @dev Interface identification is specified in ERC-165. This function
+    ///  uses less than 30,000 gas.
+    /// @return `true` if the contract implements `interfaceID` and
+    ///  `interfaceID` is not 0xffffffff, `false` otherwise
+    function supportsInterface(bytes4 interfaceID) external view returns (bool);
 }

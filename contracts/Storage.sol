@@ -5,34 +5,22 @@ contract Storage {
     address internal $contractOwner;
 
     // maps function selectors to the facets that execute the functions
-    // and maps the selectors to the position in the $selectorSlots array
-    // func selector => address facet, uint64 selectorIndex
+    // and maps the selectors to the slot in the $selectorSlots array
+    // and maps the selectors to the position in the slot
+    // func selector => address facet, uint64 slotsIndex, uint64 slotIndex
     mapping(bytes4 => bytes32) internal $facets;  
 
-    // array of function selectors    
+    // array of slots of function selectors    
+    // each slot holds 8 function selectors
     mapping(uint => bytes32) internal $selectorSlots;  
-    // uint128 selectorSlotLength, uint128 selectorSlotsLength
-    // selectorSlotsLength is the number of slots in $selectorSlotLengths;
-    // selectorSlotLength is the number of 4 byte slots in the last slot of $selectorSlotLengths;    
-    uint $selectorSlotLengths;    
+
+    // uint128 numSelectorsInSlot, uint128 selectorSlotsLength
+    // selectorSlotsLength is the number of slots in $selectorSlotLength;
+    // numSelectorsInLastSlot is the number of 4 byte slots in the last slot of $selectorSlots;    
+    uint $selectorSlotsLength;    
+
+    /// Use to query if a contract implements an interface.
+    /// Used to implement ERC-165.
+    mapping(bytes4 => bool) $supportedInterfaces;
 }
-
-/*
-
-contract C {
-    struct S {
-        uint a;
-        uint b;
-    }
-
-    bytes32 constant pointer = keccak256(abi.encode(uint(1), uint(0)));
-
-    function data() internal view returns (S storage _data) {
-        bytes32 slot = pointer;
-        assembly {
-            _data_slot := slot
-        }
-    }
-}
-*/
 
