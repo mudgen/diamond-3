@@ -17,6 +17,7 @@ contract DiamondFacet is Diamond, Storage {
     bytes32 constant CLEAR_SELECTOR_MASK = 0xffffffff00000000000000000000000000000000000000000000000000000000;
 
     struct SlotInfo {
+        uint originalSelectorSlotsLength;
         uint selectorSlotsLength;
         uint numSelectorsInLastSlot;
         bytes32 selectorSlot;
@@ -28,9 +29,11 @@ contract DiamondFacet is Diamond, Storage {
 
     function diamondCut(bytes[] memory _diamondCut) public override {         
         require(msg.sender == $contractOwner, "Must own the contract.");
-        SlotInfo memory slot = SlotInfo($selectorSlotsLength,0,0,0,0,0,false);
-        slot.numSelectorsInLastSlot = uint128(slot.selectorSlotsLength >> 128);
-        slot.selectorSlotsLength = uint128(slot.selectorSlotsLength);                
+        SlotInfo memory slot;
+        slot.originalSelectorSlotsLength = $selectorSlotsLength;
+        slot.selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
+        slot.numSelectorsInLastSlot = uint128(slot.originalSelectorSlotsLength >> 128);
+             
         if(slot.numSelectorsInLastSlot > 0) {
             slot.selectorSlot = $selectorSlots[slot.selectorSlotsLength-1];
         }
@@ -38,7 +41,7 @@ contract DiamondFacet is Diamond, Storage {
         // loop through diamond cut        
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
-            require(facetCut.length != 0, "Missing facet/selector info.");
+            require(facetCut.length > 20, "Missing facet or selector info.");
             bytes32 currentSlot;            
             assembly { 
                 currentSlot := mload(add(facetCut,32)) 
@@ -55,20 +58,16 @@ contract DiamondFacet is Diamond, Storage {
                         currentSlot := mload(add(facetCut,position)) 
                     }
                     position += 32;
-                    uint numInSlot;
-                    if(numSelectors > 8) {
+                    uint numInSlot = numSelectors - selectorIndex;
+                    if(numInSlot > 8) {
                         numInSlot = 8;
-                    }
-                    else {
-                        numInSlot = numSelectors;
-                    }
+                    }                    
                     uint slotIndex;
                     for(; slotIndex < numInSlot; slotIndex++) {
                         bytes4 selector = bytes4(currentSlot << slotIndex * 32);
                         bytes32 oldFacet = $facets[selector];                    
                         // add
-                        if(oldFacet == 0) {
-                            slot.slotChange = true;
+                        if(oldFacet == 0) {                            
                             if(slot.numSelectorsInLastSlot == 0) {
                                 slot.selectorSlotsLength++;
                             }
@@ -141,11 +140,15 @@ contract DiamondFacet is Diamond, Storage {
                 }
             }
         }
+        uint newSelectorSlotsLength = slot.numSelectorsInLastSlot << 128 | slot.selectorSlotsLength;
+        if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
+            $selectorSlotsLength = newSelectorSlotsLength;
+            slot.slotChange = true;
+        }        
         if(slot.slotChange) {
             if(slot.selectorSlot != 0) {
                 $selectorSlots[slot.selectorSlotsLength-1] = slot.selectorSlot;
-            }
-            $selectorSlotsLength = slot.numSelectorsInLastSlot << 128 | slot.selectorSlotsLength;
+            }            
         }
         emit DiamondCut(_diamondCut);
     }

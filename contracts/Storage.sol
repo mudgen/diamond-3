@@ -23,4 +23,3 @@ contract Storage {
     /// Used to implement ERC-165.
     mapping(bytes4 => bool) $supportedInterfaces;
 }
-
