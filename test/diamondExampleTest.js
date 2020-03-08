@@ -107,15 +107,25 @@ describe('DiamondExampleTest', () => {
 
     it('should remove some test2 functions', async () => {        
         let selectors = getSelectors(test2Facet);
-        console.log(selectors);
+        //console.log(selectors);
         removeSelectors = selectors.slice(0,8);
+        //console.log("remove:"+removeSelectors);
         //removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);
+        //result = await diamondExample.getArrayLengths()
+        //console.log("array length:"+ result);
+        //result = await diamondExample.getArray();
+        //console.log(result);
         result = await diamondFacet.diamondCut([ethers.constants.AddressZero + removeSelectors]);
+        //result = await diamondExample.getArrayLengths()
+        //console.log("array length:"+ result);
+        //result = await diamondExample.getArray();
+        //console.log(result);
         //selectors = selectors.slice(8,32) + selectors.slice(48,-16);
-        selectors = selectors.slice(8);
-        console.log(selectors);
+        //selectors = selectors.slice(8);
+        //console.log(selectors);
         result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
-        console.log(result)
+        //console.log(result)
+        selectors = selectors.slice(-8) + selectors.slice(8,-8);
         assert.equal(result, "0x"+selectors);
 
     });

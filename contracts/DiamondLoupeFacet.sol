@@ -52,10 +52,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         uint numFacets;
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
-            if(selectorCount > totalSelectors) {
-                break;
-            }
+        for(uint slotIndex; selectorCount < totalSelectors; slotIndex++) {            
             bytes32 slot = $selectorSlots[slotIndex];
             for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
                 selectorCount++;
@@ -143,10 +140,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
-            if(selectorCount > totalSelectors) {
-                break;
-            }
+        for(uint slotIndex; selectorCount < totalSelectors; slotIndex++) {
             bytes32 slot = $selectorSlots[slotIndex];
             for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
                 selectorCount++;
@@ -188,10 +182,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         uint numFacets;
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
-            if(selectorCount > totalSelectors) {
-                break;
-            }
+        for(uint slotIndex; selectorCount < totalSelectors; slotIndex++) {            
             bytes32 slot = $selectorSlots[slotIndex];
             for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
                 selectorCount++;
@@ -234,20 +225,4 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     function facetAddress(bytes4 _functionSelector) external view override returns(address) {
         return address(bytes20($facets[_functionSelector]));
     }
-
-    function getArrayLengths() external view returns(uint, uint) {
-        return (uint128($selectorSlotsLength), uint128($selectorSlotsLength >> 128));
-    }
-    
-  function getArray() external view returns(bytes32[] memory) {
-        uint selectorSlotsLength = $selectorSlotsLength;
-        uint selectorSlotLength = uint128(selectorSlotsLength >> 128);
-        selectorSlotsLength = uint128(selectorSlotsLength);
-        bytes32[] memory array = new bytes32[](selectorSlotsLength);
-        for(uint i; i < selectorSlotsLength; i++) {
-            array[i] = $selectorSlots[i];
-        }
-        return array;                
-    }
-
 }

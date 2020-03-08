@@ -49,7 +49,8 @@ contract DiamondFacet is Diamond, Storage {
             uint position = 52;
             
             // adding or replacing functions
-            if(newFacet != 0) {            
+            if(newFacet != 0) {
+                slot.slotChange = true;
                 // add and replace selectors
                 for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
@@ -78,8 +79,7 @@ contract DiamondFacet is Diamond, Storage {
                 }
             }
             // remove functions
-            else {
-                slot.slotChange = true;
+            else {                
                 for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
                     assembly { 
@@ -94,16 +94,16 @@ contract DiamondFacet is Diamond, Storage {
                         slot.selectorSlotLength = 8;
                     }
                     slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
-                    slot.oldSelectorSlotIndex = uint64(uint(oldFacet >> 64));                    
-                    bytes4 lastSelector = bytes4(slot.selectorSlot << slot.selectorSlotLength * 32);
+                    slot.oldSelectorSlotIndex = uint32(uint(oldFacet >> 64));                    
+                    bytes4 lastSelector = bytes4(slot.selectorSlot << (slot.selectorSlotLength-1) * 32);                     
                     if(slot.oldSelectorSlotsIndex != slot.selectorSlotsLength) {
                         slot.oldSelectorSlot = $selectorSlots[slot.oldSelectorSlotsIndex];                            
-                        slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | lastSelector >> slot.oldSelectorSlotIndex * 32;
-                        $selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;
+                        slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;                                                
+                        $selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;                        
                         slot.selectorSlotLength--;                            
                     }
                     else {
-                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | lastSelector >> slot.oldSelectorSlotIndex * 32;
+                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
                         slot.selectorSlotLength--;
                     }
                     if(slot.selectorSlotLength == 0) {
@@ -119,8 +119,7 @@ contract DiamondFacet is Diamond, Storage {
         }
         uint newSelectorSlotsLength = slot.selectorSlotLength << 128 | slot.selectorSlotsLength;
         if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
-            $selectorSlotsLength = newSelectorSlotsLength;
-            slot.slotChange = true;
+            $selectorSlotsLength = newSelectorSlotsLength;            
         }        
         if(slot.slotChange) {
             if(slot.selectorSlot != 0) {
