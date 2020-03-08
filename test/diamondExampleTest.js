@@ -20,6 +20,7 @@ describe('DiamondExampleTest', () => {
     let aliceAccount = accounts[0];
     let deployer;
     let test1Facet;
+    let test2Facet;
     let diamondFacet;
     let diamondLoupeFacet;
     let diamondExample;
@@ -31,6 +32,7 @@ describe('DiamondExampleTest', () => {
         deployer = new etherlime.EtherlimeGanacheDeployer(aliceAccount.secretKey);
         diamondExample = await deployer.deploy(DiamondExample);
         test1Facet = await deployer.deploy(Test1Facet);
+        test2Facet = await deployer.deploy(Test2Facet);
 
         //console.log(diamondExample);
         diamondLoupeFacet = deployer.wrapDeployedContract(DiamondLoupeFacet, diamondExample.contractAddress);
@@ -75,7 +77,7 @@ describe('DiamondExampleTest', () => {
         assert.equal(result.length, 3);
     });
 
-    it('should add test functions', async () => {        
+    it('should add test1 functions', async () => {        
         let selectors = getSelectors(test1Facet);
         addresses.push(test1Facet.contractAddress);            
         result = await diamondFacet.diamondCut([test1Facet.contractAddress + selectors]);
@@ -94,6 +96,29 @@ describe('DiamondExampleTest', () => {
         //assert.equal(result, "0x561f5f89087523609a5fb5a8652bf6a79805335e041f8e348b4f47fd732c788f5fa566265aa2e332f55c1f8163d11d697be03193c73ba61d106bac4f23232be8fd06f19be868fb8f5dc36e5dd89d0d2101ffc9a7");        
     });
 
+    it('should add test2 functions', async () => {        
+        let selectors = getSelectors(test2Facet);
+        addresses.push(test2Facet.contractAddress);            
+        result = await diamondFacet.diamondCut([test2Facet.contractAddress + selectors]);
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
+        assert.equal(result, "0x"+selectors);
+
+    });
+
+    it('should remove some test2 functions', async () => {        
+        let selectors = getSelectors(test2Facet);
+        console.log(selectors);
+        removeSelectors = selectors.slice(0,8);
+        //removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);
+        result = await diamondFacet.diamondCut([ethers.constants.AddressZero + removeSelectors]);
+        //selectors = selectors.slice(8,32) + selectors.slice(48,-16);
+        selectors = selectors.slice(8);
+        console.log(selectors);
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
+        console.log(result)
+        assert.equal(result, "0x"+selectors);
+
+    });
 
 
 
