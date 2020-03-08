@@ -84,16 +84,7 @@ describe('DiamondExampleTest', () => {
         result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);        
         let frontSelector = selectors.slice(-8);
         selectors = "0x"+frontSelector + selectors.slice(0,-8);
-                
-        /*
-        result = await diamondExample.getArrayLengths()
-        console.log("array length:"+ result);
-        result = await diamondExample.getArray();
-        console.log(result);
-        */
         assert.equal(result, selectors);
-        // testing that the new function selectors exist
-        //assert.equal(result, "0x561f5f89087523609a5fb5a8652bf6a79805335e041f8e348b4f47fd732c788f5fa566265aa2e332f55c1f8163d11d697be03193c73ba61d106bac4f23232be8fd06f19be868fb8f5dc36e5dd89d0d2101ffc9a7");        
     });
 
     it('should add test2 functions', async () => {        
@@ -107,27 +98,20 @@ describe('DiamondExampleTest', () => {
 
     it('should remove some test2 functions', async () => {        
         let selectors = getSelectors(test2Facet);
-        //console.log(selectors);
-        removeSelectors = selectors.slice(0,8);
-        //console.log("remove:"+removeSelectors);
-        //removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);
+        removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);        
         //result = await diamondExample.getArrayLengths()
         //console.log("array length:"+ result);
         //result = await diamondExample.getArray();
         //console.log(result);
         result = await diamondFacet.diamondCut([ethers.constants.AddressZero + removeSelectors]);
-        //result = await diamondExample.getArrayLengths()
+        result = await diamondExample.getArrayLengths()
         //console.log("array length:"+ result);
         //result = await diamondExample.getArray();
-        //console.log(result);
-        //selectors = selectors.slice(8,32) + selectors.slice(48,-16);
-        //selectors = selectors.slice(8);
-        //console.log(selectors);
+        //console.log(result);            
         result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
-        //console.log(result)
-        selectors = selectors.slice(-8) + selectors.slice(8,-8);
+        selectors = selectors.slice(-40,-32) + selectors.slice(8,32) + selectors.slice(-32,-16) + selectors.slice(48,-40);
+        //console.log(selectors);
         assert.equal(result, "0x"+selectors);
-
     });
 
 

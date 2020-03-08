@@ -24,7 +24,7 @@ contract DiamondFacet is Diamond, Storage {
         uint oldSelectorSlotsIndex;
         uint oldSelectorSlotIndex;
         bytes32 oldSelectorSlot;
-        bool slotChange;
+        bool newSlot;
     }
 
     function diamondCut(bytes[] memory _diamondCut) public override {         
@@ -49,8 +49,7 @@ contract DiamondFacet is Diamond, Storage {
             uint position = 52;
             
             // adding or replacing functions
-            if(newFacet != 0) {
-                slot.slotChange = true;
+            if(newFacet != 0) {                
                 // add and replace selectors
                 for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
@@ -69,7 +68,11 @@ contract DiamondFacet is Diamond, Storage {
                             slot.selectorSlot = 0;
                             slot.selectorSlotLength = 0;
                             slot.selectorSlotsLength++;
-                        }                            
+                            slot.newSlot = false;
+                        }
+                        else {
+                            slot.newSlot = true;
+                        }                          
                     }                    
                     // replace
                     else {
@@ -121,10 +124,8 @@ contract DiamondFacet is Diamond, Storage {
         if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
             $selectorSlotsLength = newSelectorSlotsLength;            
         }        
-        if(slot.slotChange) {
-            if(slot.selectorSlot != 0) {
-                $selectorSlots[slot.selectorSlotsLength] = slot.selectorSlot;
-            }            
+        if(slot.newSlot) {
+            $selectorSlots[slot.selectorSlotsLength] = slot.selectorSlot;                        
         }
         emit DiamondCut(_diamondCut);
     }
