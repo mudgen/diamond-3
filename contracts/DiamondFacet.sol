@@ -19,10 +19,10 @@ contract DiamondFacet is Diamond, Storage {
     struct SlotInfo {
         uint originalSelectorSlotsLength;
         uint selectorSlotsLength;
-        uint numSelectorsInLastSlot;
+        uint selectorSlotLength;
         bytes32 selectorSlot;
         uint oldSelectorSlotsIndex;
-        uint oldSelectorsInLastSlotIndex;
+        uint oldSelectorSlotIndex;
         bytes32 oldSelectorSlot;
         bool slotChange;
     }
@@ -32,12 +32,10 @@ contract DiamondFacet is Diamond, Storage {
         SlotInfo memory slot;
         slot.originalSelectorSlotsLength = $selectorSlotsLength;
         slot.selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
-        slot.numSelectorsInLastSlot = uint128(slot.originalSelectorSlotsLength >> 128);
-             
-        if(slot.numSelectorsInLastSlot > 0) {
-            slot.selectorSlot = $selectorSlots[slot.selectorSlotsLength-1];
+        slot.selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
+        if(slot.selectorSlotLength > 0) {
+            slot.selectorSlot = $selectorSlots[slot.selectorSlotsLength];
         }
-
         // loop through diamond cut        
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
@@ -53,101 +51,80 @@ contract DiamondFacet is Diamond, Storage {
             // adding or replacing functions
             if(newFacet != 0) {            
                 // add and replace selectors
-                for(uint selectorIndex; selectorIndex < numSelectors;) {
+                for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
+                    bytes4 selector;
                     assembly { 
-                        currentSlot := mload(add(facetCut,position)) 
+                        selector := mload(add(facetCut,position)) 
                     }
-                    position += 32;
-                    uint numInSlot = numSelectors - selectorIndex;
-                    if(numInSlot > 8) {
-                        numInSlot = 8;
+                    position += 4;                    
+                    bytes32 oldFacet = $facets[selector];                    
+                    // add
+                    if(oldFacet == 0) {                            
+                        $facets[selector] = newFacet | bytes32(slot.selectorSlotLength) << 64 | bytes32(slot.selectorSlotsLength);                            
+                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.selectorSlotLength * 32) | bytes32(selector) >> slot.selectorSlotLength * 32;                            
+                        slot.selectorSlotLength++;
+                        if(slot.selectorSlotLength == 8) {
+                            $selectorSlots[slot.selectorSlotsLength] = slot.selectorSlot;                                
+                            slot.selectorSlot = 0;
+                            slot.selectorSlotLength = 0;
+                            slot.selectorSlotsLength++;
+                        }                            
                     }                    
-                    uint slotIndex;
-                    for(; slotIndex < numInSlot; slotIndex++) {
-                        bytes4 selector = bytes4(currentSlot << slotIndex * 32);
-                        bytes32 oldFacet = $facets[selector];                    
-                        // add
-                        if(oldFacet == 0) {                            
-                            if(slot.numSelectorsInLastSlot == 0) {
-                                slot.selectorSlotsLength++;
-                            }
-                            $facets[selector] = newFacet | bytes32(slot.numSelectorsInLastSlot) << 64 | bytes32(slot.selectorSlotsLength-1);                            
-                            slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.numSelectorsInLastSlot * 32) | bytes32(selector) >> slot.numSelectorsInLastSlot * 32;                            
-                            slot.numSelectorsInLastSlot++;
-                            if(slot.numSelectorsInLastSlot == 8) {
-                                $selectorSlots[slot.selectorSlotsLength] = slot.selectorSlot;                                
-                                slot.selectorSlot = 0;
-                                slot.numSelectorsInLastSlot = 0;
-                            }                            
-                        }                    
-                        // replace
-                        else {
-                            require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
-                            $facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
-                        }
-                    }
-                    selectorIndex += slotIndex;
+                    // replace
+                    else {
+                        require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
+                        $facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
+                    }                                        
                 }
             }
             // remove functions
             else {
                 slot.slotChange = true;
-                for(uint selectorIndex; selectorIndex < numSelectors;) {
+                for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
+                    bytes4 selector;
                     assembly { 
-                        currentSlot := mload(add(facetCut,position)) 
+                        selector := mload(add(facetCut,position)) 
                     }
-                    position += 32;
-                    uint numInSlot;
-                    if(numSelectors > 8) {
-                        numInSlot = 8;
+                    position += 4;                    
+                    bytes32 oldFacet = $facets[selector];
+                    require(oldFacet != 0, "Function doesn't exist. Can't remove.");
+                    if(slot.selectorSlot == 0) {
+                        slot.selectorSlotsLength--;
+                        slot.selectorSlot = $selectorSlots[slot.selectorSlotsLength];
+                        slot.selectorSlotLength = 8;
+                    }
+                    slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
+                    slot.oldSelectorSlotIndex = uint64(uint(oldFacet >> 64));                    
+                    bytes4 lastSelector = bytes4(slot.selectorSlot << slot.selectorSlotLength * 32);
+                    if(slot.oldSelectorSlotsIndex != slot.selectorSlotsLength) {
+                        slot.oldSelectorSlot = $selectorSlots[slot.oldSelectorSlotsIndex];                            
+                        slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | lastSelector >> slot.oldSelectorSlotIndex * 32;
+                        $selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;
+                        slot.selectorSlotLength--;                            
                     }
                     else {
-                        numInSlot = numSelectors;
+                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | lastSelector >> slot.oldSelectorSlotIndex * 32;
+                        slot.selectorSlotLength--;
                     }
-                    uint slotIndex;
-                    for(; slotIndex < numInSlot; slotIndex++) {
-                        bytes4 selector = bytes4(currentSlot << slotIndex * 32);
-                        bytes32 oldFacet = $facets[selector];
-                        require(oldFacet != 0, "Function doesn't exist. Can't remove.");
-                        if(slot.selectorSlot == 0) {
-                            slot.selectorSlot = $selectorSlots[slot.selectorSlotsLength-1];
-                            slot.numSelectorsInLastSlot = 8;
-                        }
-                        slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
-                        slot.oldSelectorsInLastSlotIndex = uint64(uint(oldFacet >> 64));
-                        bytes32 lastSelector = (slot.selectorSlot >> (8 - slot.numSelectorsInLastSlot) * 32) << 224;
-                        if(slot.oldSelectorSlotsIndex != slot.selectorSlotsLength-1) {
-                            slot.oldSelectorSlot = $selectorSlots[slot.oldSelectorSlotsIndex];                            
-                            slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorsInLastSlotIndex * 32) | lastSelector >> slot.oldSelectorsInLastSlotIndex * 32;
-                            $selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;
-                            slot.numSelectorsInLastSlot--;                            
-                        }
-                        else {
-                            slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorsInLastSlotIndex * 32) | lastSelector >> slot.oldSelectorsInLastSlotIndex * 32;
-                            slot.numSelectorsInLastSlot--;
-                        }
-                        if(slot.numSelectorsInLastSlot == 0) {
-                            slot.selectorSlotsLength--;
-                            delete $selectorSlots[slot.selectorSlotsLength];
-                            slot.selectorSlot = 0;
-                        }
-                        if(bytes4(lastSelector) != selector) {                      
-                            $facets[bytes4(lastSelector)] = oldFacet & CLEAR_ADDRESS_MASK | bytes20($facets[bytes4(lastSelector)]); 
-                        }
-                        delete $facets[selector];
+                    if(slot.selectorSlotLength == 0) {
+                        delete $selectorSlots[slot.selectorSlotsLength];                                                
+                        slot.selectorSlot = 0;
                     }
-                    selectorIndex += slotIndex;
+                    if(lastSelector != selector) {                      
+                        $facets[lastSelector] = oldFacet & CLEAR_ADDRESS_MASK | bytes20($facets[lastSelector]); 
+                    }
+                    delete $facets[selector];
                 }
             }
         }
-        uint newSelectorSlotsLength = slot.numSelectorsInLastSlot << 128 | slot.selectorSlotsLength;
+        uint newSelectorSlotsLength = slot.selectorSlotLength << 128 | slot.selectorSlotsLength;
         if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
             $selectorSlotsLength = newSelectorSlotsLength;
             slot.slotChange = true;
         }        
         if(slot.slotChange) {
             if(slot.selectorSlot != 0) {
-                $selectorSlots[slot.selectorSlotsLength-1] = slot.selectorSlot;
+                $selectorSlots[slot.selectorSlotsLength] = slot.selectorSlot;
             }            
         }
         emit DiamondCut(_diamondCut);

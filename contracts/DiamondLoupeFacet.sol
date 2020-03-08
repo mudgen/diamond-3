@@ -34,14 +34,14 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     /// facet is the address of a facet.    
     /// functionSelectors consists of one or more 4 byte function selectors.
     function facets() external view override returns(bytes[] memory) {
-        uint selectorSlotsLength = $selectorSlotsLength;
-        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
-        selectorSlotsLength = uint128(selectorSlotsLength);       
-        
-        uint totalSelectors = selectorSlotsLength*8;
-        if(numSelectorsInLastSlot > 0) {
-            totalSelectors -= 8 - numSelectorsInLastSlot;
+        uint totalSelectorSlots = $selectorSlotsLength;
+        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        totalSelectorSlots = uint128(totalSelectorSlots);        
+        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        if(selectorSlotLength > 0) {
+            totalSelectorSlots++;
         }
+        
         // get default size of arrays
         uint defaultSize = totalSelectors;        
         if(defaultSize > 20) {
@@ -52,7 +52,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
         uint numFacets;
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
+        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
             if(selectorCount > totalSelectors) {
                 break;
             }
@@ -131,18 +131,19 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     /// The return value is tightly packed. Here is an example:
     /// return abi.encodePacked(selector1, selector2, selector3, ...)
     function facetFunctionSelectors(address _facet) external view override returns(bytes memory) {
-        uint selectorSlotsLength = $selectorSlotsLength;
-        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
-        selectorSlotsLength = uint128(selectorSlotsLength);               
-        uint totalSelectors = selectorSlotsLength*8;
-        if(numSelectorsInLastSlot > 0) {
-            totalSelectors -= 8 - numSelectorsInLastSlot;
-        }        
+        uint totalSelectorSlots = $selectorSlotsLength;
+        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        totalSelectorSlots = uint128(totalSelectorSlots);        
+        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        if(selectorSlotLength > 0) {
+            totalSelectorSlots++;
+        }                       
+
         uint numFacetSelectors;        
         bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
+        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
             if(selectorCount > totalSelectors) {
                 break;
             }
@@ -176,18 +177,18 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     /// Example return value: 
     /// return abi.encodePacked(facet1, facet2, facet3, ...)
     function facetAddresses() external view override returns(bytes memory) {
-        uint selectorSlotsLength = $selectorSlotsLength;
-        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
-        selectorSlotsLength = uint128(selectorSlotsLength);               
-        uint totalSelectors = selectorSlotsLength*8;
-        if(numSelectorsInLastSlot > 0) {
-            totalSelectors -= 8 - numSelectorsInLastSlot;
+        uint totalSelectorSlots = $selectorSlotsLength;
+        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        totalSelectorSlots = uint128(totalSelectorSlots);        
+        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        if(selectorSlotLength > 0) {
+            totalSelectorSlots++;
         }        
         address[] memory facets_ = new address[](totalSelectors);
         uint numFacets;
         uint selectorCount;
         // loop through function selectors
-        for(uint slotIndex; slotIndex < selectorSlotsLength; slotIndex++) {
+        for(uint slotIndex; slotIndex < totalSelectorSlots; slotIndex++) {
             if(selectorCount > totalSelectors) {
                 break;
             }
@@ -240,7 +241,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     
   function getArray() external view returns(bytes32[] memory) {
         uint selectorSlotsLength = $selectorSlotsLength;
-        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
+        uint selectorSlotLength = uint128(selectorSlotsLength >> 128);
         selectorSlotsLength = uint128(selectorSlotsLength);
         bytes32[] memory array = new bytes32[](selectorSlotsLength);
         for(uint i; i < selectorSlotsLength; i++) {

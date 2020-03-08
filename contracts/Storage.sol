@@ -16,7 +16,8 @@ contract Storage {
 
     // uint128 numSelectorsInSlot, uint128 selectorSlotsLength
     // selectorSlotsLength is the number of slots in $selectorSlotLength;
-    // numSelectorsInLastSlot is the number of 4 byte slots in the last slot of $selectorSlots;    
+    // selectorSlotLength is the number of selectors in the last slot of
+    // $selectorSlots;    
     uint $selectorSlotsLength;    
 
     /// Use to query if a contract implements an interface.

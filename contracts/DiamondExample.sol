@@ -59,7 +59,7 @@ contract DiamondExample is Storage {
     
 
     function getArrayLengths() external view returns(uint, uint) {
-        return (uint128($selectorSlotsLength) >> 128, uint128($selectorSlotsLength));
+        return (uint128($selectorSlotsLength >> 128), uint128($selectorSlotsLength));
     }
 
     
@@ -67,6 +67,9 @@ contract DiamondExample is Storage {
         uint selectorSlotsLength = $selectorSlotsLength;
         uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
         selectorSlotsLength = uint128(selectorSlotsLength);
+        if(numSelectorsInLastSlot > 0) {
+            selectorSlotsLength++;
+        }
         bytes32[] memory array = new bytes32[](selectorSlotsLength);
         for(uint i; i < selectorSlotsLength; i++) {
             array[i] = $selectorSlots[i];

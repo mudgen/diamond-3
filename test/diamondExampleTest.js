@@ -4,28 +4,40 @@ const utils = ethers.utils;
 const DiamondExample = require('../build/DiamondExample.json');
 const DiamondLoupeFacet = require('../build/DiamondLoupeFacet.json');
 const DiamondFacet = require('../build/DiamondFacet.json');
-const TestFacet = require('../build/TestFacet.json');
+const Test1Facet = require('../build/Test1Facet.json');
+const Test2Facet = require('../build/Test2Facet.json');
 
+
+function getSelectors(contract) {
+    let values = Array.from(new Set(Object.values(contract.interface.functions)));        
+    let selectors = values.reduce((acc, val) => {
+        return acc + val.sighash.slice(2);
+    }, ""); 
+    return selectors;
+}
 
 describe('DiamondExampleTest', () => {
     let aliceAccount = accounts[0];
     let deployer;
-    let testFacet;
+    let test1Facet;
     let diamondFacet;
     let diamondLoupeFacet;
+    let diamondExample;
 
     let result;
     let addresses;
 
     before(async () => {
         deployer = new etherlime.EtherlimeGanacheDeployer(aliceAccount.secretKey);
-        const diamondExample = await deployer.deploy(DiamondExample);
-        testFacet = await deployer.deploy(TestFacet);
+        diamondExample = await deployer.deploy(DiamondExample);
+        test1Facet = await deployer.deploy(Test1Facet);
 
         //console.log(diamondExample);
         diamondLoupeFacet = deployer.wrapDeployedContract(DiamondLoupeFacet, diamondExample.contractAddress);
         diamondFacet = deployer.wrapDeployedContract(DiamondFacet, diamondExample.contractAddress);
     });
+    //function splitAddresses()
+    
     it('should have three facets', async () => {
         result = await diamondLoupeFacet.facetAddresses();
         addresses = result.slice(2).match(/.{40}/g).map(address => utils.getAddress(address));
@@ -63,19 +75,26 @@ describe('DiamondExampleTest', () => {
         assert.equal(result.length, 3);
     });
 
-    it('should add test functions', async () => {
-        let values = Array.from(new Set(Object.values(testFacet.interface.functions)));
-        //console.log(values);
-        let selectors = values.reduce((acc, val) => {
-            return acc + val.sighash.slice(2);
-        }, "");
-        console.log(selectors);
-        result = await diamondFacet.diamondCut([testFacet.contractAddress + selectors]);
+    it('should add test functions', async () => {        
+        let selectors = getSelectors(test1Facet);
+        addresses.push(test1Facet.contractAddress);            
+        result = await diamondFacet.diamondCut([test1Facet.contractAddress + selectors]);
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);        
+        let frontSelector = selectors.slice(-8);
+        selectors = "0x"+frontSelector + selectors.slice(0,-8);
+                
+        /*
+        result = await diamondExample.getArrayLengths()
+        console.log("array length:"+ result);
+        result = await diamondExample.getArray();
         console.log(result);
-
-        
-
+        */
+        assert.equal(result, selectors);
+        // testing that the new function selectors exist
+        //assert.equal(result, "0x561f5f89087523609a5fb5a8652bf6a79805335e041f8e348b4f47fd732c788f5fa566265aa2e332f55c1f8163d11d697be03193c73ba61d106bac4f23232be8fd06f19be868fb8f5dc36e5dd89d0d2101ffc9a7");        
     });
+
+
 
 
 });
