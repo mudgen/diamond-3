@@ -56,28 +56,6 @@ contract DiamondExample is Storage {
         return $supportedInterfaces[_interfaceID];
     }
 
-    
-
-    function getArrayLengths() external view returns(uint, uint) {
-        return (uint128($selectorSlotsLength >> 128), uint128($selectorSlotsLength));
-    }
-
-    
-    function getArray() external view returns(bytes32[] memory) {
-        uint selectorSlotsLength = $selectorSlotsLength;
-        uint numSelectorsInLastSlot = uint128(selectorSlotsLength >> 128);
-        selectorSlotsLength = uint128(selectorSlotsLength);
-        if(numSelectorsInLastSlot > 0) {
-            selectorSlotsLength++;
-        }
-        bytes32[] memory array = new bytes32[](selectorSlotsLength);
-        for(uint i; i < selectorSlotsLength; i++) {
-            array[i] = $selectorSlots[i];
-        }
-        return array;                
-    }
-
-
     // Finds facet for function that is called and executes the
     // function if it is found and returns any value.
     fallback() external payable {
