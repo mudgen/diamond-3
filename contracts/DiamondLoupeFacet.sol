@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************\
 * Author: Nick Mudge
 *
-* Implementation of Diamond facet.
+* Implementation of DiamondLoupe interface.
 /******************************************************************************/
 
 import "./Storage.sol";
