@@ -2,3 +2,5 @@ node_modules
 build
 .etherlime-store
 coverage
+stuff.txt
+deployment/deploy.js

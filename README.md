@@ -11,6 +11,7 @@ The `test/diamondExampleTest.js` file gives tests for the `diamondCut` function 
 
 ## Author
 The diamond standard and reference implementation were written by Nick Mudge.
+
 Contact:
 
 * https://twitter.com/mudgen
