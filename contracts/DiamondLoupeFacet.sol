@@ -33,7 +33,7 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     ///     ...
     /// ]    
     /// facet is the address of a facet.    
-    /// functionSelectors consists of one or more 4 byte function selectors.
+    /// sel1, sel2, sel3 etc. are four-byte function selectors.
     function facets() external view override returns(bytes[] memory) {
         uint totalSelectorSlots = $selectorSlotsLength;
         uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
