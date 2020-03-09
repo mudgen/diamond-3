@@ -5,7 +5,8 @@ pragma experimental ABIEncoderV2;
 
 interface Diamond {
     /// @notice _diamondCut is an array of bytes arrays.
-    /// This argument is tightly packed for gas efficiency
+    /// This argument is tightly packed for gas efficiency.
+    /// That means no padding with zeros.
     /// Here is the structure of _diamondCut:
     /// _diamondCut = [
     ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
@@ -24,7 +25,7 @@ interface Diamond {
 interface DiamondLoupe {        
     /// These functions are expected to be called frequently
     /// by tools. Therefore the return values are tightly
-    /// packed for efficiency.
+    /// packed for efficiency. That means no padding with zeros.
 
     /// @notice Gets all facets and their selectors.
     /// @return An array of bytes arrays containing each facet 
@@ -32,8 +33,8 @@ interface DiamondLoupe {
     /// The return value is tightly packed.
     /// Here is the structure of the return value:
     /// returnValue = [
-    ///     abi.encodePacked(facet, functionSelectors),
-    ///     abi.encodePacked(facet, functionSelectors),
+    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
+    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
     ///     ...
     /// ]    
     /// facet is the address of a facet.    

@@ -14,7 +14,7 @@ import "./DiamondHeaders.sol";
 contract DiamondLoupeFacet is DiamondLoupe, Storage {
     /// These functions are expected to be called frequently
     /// by tools. Therefore the return values are tightly
-    /// packed for efficiency.    
+    /// packed for efficiency. That means no padding with zeros.    
     
     struct Facet {
         address facet;
@@ -25,9 +25,10 @@ contract DiamondLoupeFacet is DiamondLoupe, Storage {
     /// @return An array of bytes arrays containing each facet 
     ///         and each facet's selectors.
     /// The return value is tightly packed.
+    /// That means no padding with zeros.
     /// Here is the structure of the return value:
     /// returnValue = [
-    ///     abi.encodePacked(facet, functionSelectors),
+    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
     ///     abi.encodePacked(facet, functionSelectors),
     ///     ...
     /// ]    
