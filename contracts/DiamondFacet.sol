@@ -1,4 +1,4 @@
-pragma solidity ^0.6.3;
+pragma solidity ^0.6.4;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
@@ -8,11 +8,10 @@ pragma experimental ABIEncoderV2;
 * This is gas optimized by reducing storage reads and storage writes.
 /******************************************************************************/
 
-import "./Storage.sol";
+import "./DiamondStorageContract.sol";
 import "./DiamondHeaders.sol";
 
-
-contract DiamondFacet is Diamond, Storage {  
+contract DiamondFacet is Diamond, DiamondStorageContract {  
     bytes32 constant CLEAR_ADDRESS_MASK = 0x0000000000000000000000000000000000000000ffffffffffffffffffffffff;
     bytes32 constant CLEAR_SELECTOR_MASK = 0xffffffff00000000000000000000000000000000000000000000000000000000;
 
@@ -25,14 +24,15 @@ contract DiamondFacet is Diamond, Storage {
         bool newSlot;
     }
 
-    function diamondCut(bytes[] memory _diamondCut) public override {         
-        require(msg.sender == $contractOwner, "Must own the contract.");
+    function diamondCut(bytes[] memory _diamondCut) public override {
+        DiamondStorage storage ds = diamondStorage();      
+        require(msg.sender == ds.contractOwner, "Must own the contract.");        
         SlotInfo memory slot;
-        slot.originalSelectorSlotsLength = $selectorSlotsLength;
+        slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
         uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
         uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
         if(selectorSlotLength > 0) {
-            slot.selectorSlot = $selectorSlots[selectorSlotsLength];
+            slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
         }
         // loop through diamond cut        
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
@@ -55,14 +55,14 @@ contract DiamondFacet is Diamond, Storage {
                         selector := mload(add(facetCut,position)) 
                     }
                     position += 4;                    
-                    bytes32 oldFacet = $facets[selector];                    
+                    bytes32 oldFacet = ds.facets[selector];                    
                     // add
                     if(oldFacet == 0) {                            
-                        $facets[selector] = newFacet | bytes32(selectorSlotLength) << 64 | bytes32(selectorSlotsLength);                            
+                        ds.facets[selector] = newFacet | bytes32(selectorSlotLength) << 64 | bytes32(selectorSlotsLength);                            
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorSlotLength * 32) | bytes32(selector) >> selectorSlotLength * 32;                            
                         selectorSlotLength++;
                         if(selectorSlotLength == 8) {
-                            $selectorSlots[selectorSlotsLength] = slot.selectorSlot;                                
+                            ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;                                
                             slot.selectorSlot = 0;
                             selectorSlotLength = 0;
                             selectorSlotsLength++;
@@ -75,7 +75,7 @@ contract DiamondFacet is Diamond, Storage {
                     // replace
                     else {
                         require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
-                        $facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
+                        ds.facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
                     }                                        
                 }
             }
@@ -87,20 +87,20 @@ contract DiamondFacet is Diamond, Storage {
                         selector := mload(add(facetCut,position)) 
                     }
                     position += 4;                    
-                    bytes32 oldFacet = $facets[selector];
+                    bytes32 oldFacet = ds.facets[selector];
                     require(oldFacet != 0, "Function doesn't exist. Can't remove.");
                     if(slot.selectorSlot == 0) {
                         selectorSlotsLength--;
-                        slot.selectorSlot = $selectorSlots[selectorSlotsLength];
+                        slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
                         selectorSlotLength = 8;
                     }
                     slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
                     slot.oldSelectorSlotIndex = uint32(uint(oldFacet >> 64));                    
                     bytes4 lastSelector = bytes4(slot.selectorSlot << (selectorSlotLength-1) * 32);                     
                     if(slot.oldSelectorSlotsIndex != selectorSlotsLength) {
-                        slot.oldSelectorSlot = $selectorSlots[slot.oldSelectorSlotsIndex];                            
+                        slot.oldSelectorSlot = ds.selectorSlots[slot.oldSelectorSlotsIndex];                            
                         slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;                                                
-                        $selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;                        
+                        ds.selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;                        
                         selectorSlotLength--;                            
                     }
                     else {
@@ -108,22 +108,22 @@ contract DiamondFacet is Diamond, Storage {
                         selectorSlotLength--;
                     }
                     if(selectorSlotLength == 0) {
-                        delete $selectorSlots[selectorSlotsLength];                                                
+                        delete ds.selectorSlots[selectorSlotsLength];                                                
                         slot.selectorSlot = 0;
                     }
                     if(lastSelector != selector) {                      
-                        $facets[lastSelector] = oldFacet & CLEAR_ADDRESS_MASK | bytes20($facets[lastSelector]); 
+                        ds.facets[lastSelector] = oldFacet & CLEAR_ADDRESS_MASK | bytes20(ds.facets[lastSelector]); 
                     }
-                    delete $facets[selector];
+                    delete ds.facets[selector];
                 }
             }
         }
         uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
         if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
-            $selectorSlotsLength = newSelectorSlotsLength;            
+            ds.selectorSlotsLength = newSelectorSlotsLength;            
         }        
         if(slot.newSlot) {
-            $selectorSlots[selectorSlotsLength] = slot.selectorSlot;                        
+            ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;                        
         }
         emit DiamondCut(_diamondCut);
     }

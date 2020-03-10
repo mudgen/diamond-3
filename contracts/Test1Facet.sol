@@ -1,4 +1,4 @@
-pragma solidity ^0.6.3;
+pragma solidity ^0.6.4;
 
 contract Test1Facet {    
     function test1Func1() external {}    

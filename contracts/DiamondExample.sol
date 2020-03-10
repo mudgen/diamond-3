@@ -1,18 +1,24 @@
-pragma solidity ^0.6.3;
+pragma solidity ^0.6.4;
 pragma experimental ABIEncoderV2;
 
-import "./Storage.sol";
+/******************************************************************************\
+* Author: Nick Mudge
+*
+* Implementation of an example of a diamond.
+/******************************************************************************/
+
+import "./DiamondStorageContract.sol";
 import "./DiamondHeaders.sol";
 import "./DiamondFacet.sol";
 import "./DiamondLoupeFacet.sol";
 
-
-contract DiamondExample is Storage {
+contract DiamondExample is DiamondStorageContract {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     
     constructor() public {
-        $contractOwner = msg.sender;        
+        DiamondStorage storage ds = diamondStorage();
+        ds.contractOwner = msg.sender;        
         emit OwnershipTransferred(address(0), msg.sender);
 
         // Create a DiamondFacet contract which implements the Diamond interface
@@ -44,22 +50,24 @@ contract DiamondExample is Storage {
         require(success, "Adding functions failed.");        
 
         // adding ERC165 data
-        $supportedInterfaces[ERC165.supportsInterface.selector] = true;
-        $supportedInterfaces[Diamond.diamondCut.selector] = true;
+        ds.supportedInterfaces[ERC165.supportsInterface.selector] = true;
+        ds.supportedInterfaces[Diamond.diamondCut.selector] = true;
         bytes4 interfaceID = DiamondLoupe.facets.selector ^ DiamondLoupe.facetFunctionSelectors.selector ^ DiamondLoupe.facetAddresses.selector ^ DiamondLoupe.facetAddress.selector;
-        $supportedInterfaces[interfaceID] = true;
+        ds.supportedInterfaces[interfaceID] = true;
     }
 
     // This is an immutable functions because it is defined directly in the diamond.
     // This implements ERC-165.
     function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
-        return $supportedInterfaces[_interfaceID];
+        DiamondStorage storage ds = diamondStorage();
+        return ds.supportedInterfaces[_interfaceID];
     }
 
     // Finds facet for function that is called and executes the
     // function if it is found and returns any value.
     fallback() external payable {
-        address facet = address(bytes20($facets[msg.sig]));
+        DiamondStorage storage ds = diamondStorage();
+        address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
         assembly {
             let ptr := mload(0x40)

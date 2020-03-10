@@ -1,4 +1,4 @@
-pragma solidity ^0.6.3;
+pragma solidity ^0.6.4;
 pragma experimental ABIEncoderV2;
 
 
@@ -14,7 +14,7 @@ interface Diamond {
     ///     ...
     /// ]    
     /// facet is the address of a facet    
-    /// sel1, sel2, sel3 etc. are four-byte function selectors    
+    /// sel1, sel2, sel3 etc. are four-byte function selectors.   
     function diamondCut(bytes[] calldata _diamondCut) external;
     event DiamondCut(bytes[] _diamondCut);    
 }
@@ -38,7 +38,7 @@ interface DiamondLoupe {
     ///     ...
     /// ]    
     /// facet is the address of a facet.    
-    /// functionSelectors consists of one or more 4 byte function selectors.  
+    /// sel1, sel2, sel3 etc. are four-byte function selectors.
     function facets() external view returns(bytes[] memory);
     
     /// @notice Gets all the function selectors supported by a specific facet.
