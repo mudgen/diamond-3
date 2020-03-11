@@ -27,13 +27,10 @@ contract DiamondStorageContract {
         // Used to implement ERC-165.
         mapping(bytes4 => bool) supportedInterfaces;
     }
-
-    bytes32 constant location = keccak256("diamond.standard.diamond.storage");
+    
 
     function diamondStorage() internal pure returns(DiamondStorage storage ds) {
-        bytes32 loc = location;
-        assembly {
-            ds_slot := loc
-        }
+        // ds_slot = keccak256("diamond.standard.diamond.storage");
+        assembly { ds_slot := 0xc8fcad8db84d3cc18b4c41d551ea0ee66dd599cde068d998e57d5e09332c131c }
     }
 }
