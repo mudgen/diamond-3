@@ -6,24 +6,24 @@ contract DiamondStorageContract {
         // owner of the contract
         address contractOwner;
 
-        // maps function selectors to the facets that execute the functions
-        // and maps the selectors to the slot in the selectorSlots array
-        // and maps the selectors to the position in the slot
+        // maps function selectors to the facets that execute the functions.
+        // and maps the selectors to the slot in the selectorSlots array.
+        // and maps the selectors to the position in the slot.
         // func selector => address facet, uint64 slotsIndex, uint64 slotIndex
         mapping(bytes4 => bytes32) facets;
 
-        // array of slots of function selectors    
-        // each slot holds 8 function selectors
+        // array of slots of function selectors.
+        // each slot holds 8 function selectors.
         mapping(uint => bytes32) selectorSlots;  
 
         // uint128 numSelectorsInSlot, uint128 selectorSlotsLength
-        // selectorSlotsLength is the number of slots in selectorSlotLength;
+        // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
         // selectorSlotLength is the number of selectors in the last slot of
-        // $selectorSlots;    
+        // selectorSlots.
         uint selectorSlotsLength;
 
-        /// Use to query if a contract implements an interface.
-        /// Used to implement ERC-165.
+        // Used to query if a contract implements an interface.
+        // Used to implement ERC-165.
         mapping(bytes4 => bool) supportedInterfaces;
     }
 
@@ -35,6 +35,4 @@ contract DiamondStorageContract {
             ds_slot := loc
         }
     }
-
-
 }
