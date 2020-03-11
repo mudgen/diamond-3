@@ -3,6 +3,7 @@ pragma solidity ^0.6.4;
 contract DiamondStorageContract {
 
     struct DiamondStorage {
+        
         // owner of the contract
         address contractOwner;
 
