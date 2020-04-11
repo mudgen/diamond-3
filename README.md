@@ -3,7 +3,7 @@ This is the gas-optimized reference implementation for the [diamond standard](ht
 
 Specifically this is a gas efficient implementation of the `diamondCut` function and the Diamond Loupe functions from the diamond standard.
 
-The `diamondCut` implementation avoids storage read and writes. Fits 8 function selectors in a single storage slot.
+The `diamondCut` implementation avoids storage read and writes. Fits 8 function selectors in a single storage slot. This is a gas optimization. 
 
 The `contracts/DiamondExample.sol` file shows an example of implementing a diamond.
 
