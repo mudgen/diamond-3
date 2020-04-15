@@ -18,28 +18,28 @@ contract DiamondExample is DiamondStorageContract {
     
     constructor() public {
         DiamondStorage storage ds = diamondStorage();
-        ds.contractOwner = msg.sender;        
+        ds.contractOwner = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
 
         // Create a DiamondFacet contract which implements the Diamond interface
         DiamondFacet diamondFacet = new DiamondFacet();
 
         // Create a DiamondLoupeFacet contract which implements the Diamond Loupe interface
-        DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();   
+        DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
         bytes[] memory diamondCut = new bytes[](3);
 
         // Adding cut function
         diamondCut[0] = abi.encodePacked(diamondFacet, Diamond.diamondCut.selector);
 
-        // Adding diamond loupe functions                
+        // Adding diamond loupe functions
         diamondCut[1] = abi.encodePacked(
             diamondLoupeFacet,
             DiamondLoupe.facetFunctionSelectors.selector,
             DiamondLoupe.facets.selector,
             DiamondLoupe.facetAddress.selector,
-            DiamondLoupe.facetAddresses.selector            
-        );    
+            DiamondLoupe.facetAddresses.selector
+        );
 
         // Adding supportsInterface function
         diamondCut[2] = abi.encodePacked(address(this), ERC165.supportsInterface.selector);
@@ -47,7 +47,7 @@ contract DiamondExample is DiamondStorageContract {
         // execute cut function
         bytes memory cutFunction = abi.encodeWithSelector(Diamond.diamondCut.selector, diamondCut);
         (bool success,) = address(diamondFacet).delegatecall(cutFunction);
-        require(success, "Adding functions failed.");        
+        require(success, "Adding functions failed.");
 
         // adding ERC165 data
         ds.supportedInterfaces[ERC165.supportsInterface.selector] = true;

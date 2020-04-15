@@ -15,7 +15,7 @@ contract DiamondStorageContract {
 
         // array of slots of function selectors.
         // each slot holds 8 function selectors.
-        mapping(uint => bytes32) selectorSlots;  
+        mapping(uint => bytes32) selectorSlots;
 
         // uint128 numSelectorsInSlot, uint128 selectorSlotsLength
         // selectorSlotsLength is the number of 32-byte slots in selectorSlots.

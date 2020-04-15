@@ -9,10 +9,10 @@ const Test2Facet = require('../build/Test2Facet.json');
 
 
 function getSelectors(contract) {
-    let values = Array.from(new Set(Object.values(contract.interface.functions)));        
+    let values = Array.from(new Set(Object.values(contract.interface.functions)));
     let selectors = values.reduce((acc, val) => {
         return acc + val.sighash.slice(2);
-    }, ""); 
+    }, "");
     return selectors;
 }
 
@@ -48,7 +48,7 @@ describe('DiamondExampleTest', () => {
     });
 
     it('facets should have the right function selectors', async () => {
-        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[0]);        
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[0]);
         assert.equal(result, "0x99f5f52e");
         result = await diamondLoupeFacet.facetFunctionSelectors(addresses[1]);
         assert.equal(result, "0xadfca15e7a0ed627cdffacc652ef6b2c");
@@ -77,43 +77,43 @@ describe('DiamondExampleTest', () => {
         assert.equal(result.length, 3);
     });
 
-    it('should add test1 functions', async () => {        
+    it('should add test1 functions', async () => {
         let selectors = getSelectors(test1Facet);
-        addresses.push(test1Facet.contractAddress);            
+        addresses.push(test1Facet.contractAddress);
         result = await diamondFacet.diamondCut([test1Facet.contractAddress + selectors]);
-        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);        
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);
         let frontSelector = selectors.slice(-8);
         selectors = "0x"+frontSelector + selectors.slice(0,-8);
         assert.equal(result, selectors);
     });
 
-    it('should add test2 functions', async () => {        
+    it('should add test2 functions', async () => {
         let selectors = getSelectors(test2Facet);
-        addresses.push(test2Facet.contractAddress);            
+        addresses.push(test2Facet.contractAddress);
         result = await diamondFacet.diamondCut([test2Facet.contractAddress + selectors]);
-        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);
         assert.equal(result, "0x"+selectors);
 
     });
 
-    it('should remove some test2 functions', async () => {        
+    it('should remove some test2 functions', async () => {
         let selectors = getSelectors(test2Facet);
-        removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);        
+        removeSelectors = selectors.slice(0,8) + selectors.slice(32,48) + selectors.slice(-16);
         result = await diamondFacet.diamondCut([ethers.constants.AddressZero + removeSelectors]);
-        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);        
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[4]);
         selectors = selectors.slice(-40,-32) + selectors.slice(8,32) + selectors.slice(-32,-16) + selectors.slice(48,-40);
         assert.equal(result, "0x"+selectors);
     });
 
 
-    it('should remove some test1 functions', async () => {        
+    it('should remove some test1 functions', async () => {
         let selectors = getSelectors(test1Facet);
         let frontSelector = selectors.slice(-8);
         selectors = frontSelector + selectors.slice(0,-8);
 
-        removeSelectors = selectors.slice(8,16)  + selectors.slice(64,80);        
+        removeSelectors = selectors.slice(8,16)  + selectors.slice(64,80);
         result = await diamondFacet.diamondCut([ethers.constants.AddressZero + removeSelectors]);
-        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);        
+        result = await diamondLoupeFacet.facetFunctionSelectors(addresses[3]);
         selectors = selectors.slice(0,8) + selectors.slice(16,64) + selectors.slice(80);
         assert.equal(result, "0x"+selectors);
     });
