@@ -5,7 +5,11 @@ const DiamondExample = require('../build/DiamondExample.json');
 const DiamondLoupeFacet = require('../build/DiamondLoupeFacet.json');
 const DiamondFacet = require('../build/DiamondFacet.json');
 
-
+// The standard diamond example comes with 6 full slots.
+// [cut, loupe, loupe, loupe, loupe, erc165]
+// This bug manifests if you delete something from the final
+// selector slot array, so we'll fill up this slot with 2 more
+// things, and have a fresh row to work with.
 describe('Cache bug', () => {
     let aliceAccount = accounts[0];
     let deployer;
@@ -19,10 +23,12 @@ describe('Cache bug', () => {
 
     // Selectors without 0x
     // web3.eth.abi.encodeFunctionSignature("test1Func2()").slice(2) etc
-    const sel0 = '19e3b533';
-    const sel1 = '0716c2ae';
-    const sel2 = '11046047';
+    const sel0 = '19e3b533'; // fills up slot 0
+    const sel1 = '0716c2ae'; // fills up slot 0
+    const sel2 = '11046047'; // all others into slot 1
     const sel3 = 'cf3bbe18';
+    const sel4 = '24c1d5a7';
+    const sel5 = 'cbb835f6';
 
     before(async () => {
         deployer = new etherlime.EtherlimeGanacheDeployer(aliceAccount.secretKey);
@@ -32,33 +38,32 @@ describe('Cache bug', () => {
         diamondFacet = deployer.wrapDeployedContract(DiamondFacet, diamondExample.contractAddress);
 
         // Add facet
-        let newFacetDescription = test1Facet.contractAddress + sel0 + sel1 + sel2 + sel3;
+        let newFacetDescription = test1Facet.contractAddress + sel0 + sel1 + sel2 + sel3 + sel4 + sel5;
         await diamondFacet.diamondCut([newFacetDescription]);
 
         // Remove facet
-        let removalDescription = zeroAddress + sel1;
+        let removalDescription = zeroAddress + sel3;
         await diamondFacet.diamondCut([removalDescription]);
     });
     
     // If the bug is present, this should leave the last slot in cache as
-    // [ sel0 sel3 sel2 ] (sel3 off the edge)
+    // [ sel2 sel5 sel4 ] (sel5 off the edge)
     // but not write it back, so the storage should still have
-    // [ sel0 sel1 sel2 ] (sel3 off the edge)
+    // [ sel2 sel3 sel4 ] (sel5 off the edge)
 
     it("should not exhibit the cache bug", async () => {
         // Get the test1Facet's registered functions
         let selectors = await diamondLoupeFacet.facetFunctionSelectors(test1Facet.contractAddress);
         console.log(selectors);
-        console.log([sel0, sel1, sel2, sel3].join(" "));
-
-        // Short-circuit test for our specific bug
-        assert.isFalse((!selectors.includes(sel3)) && selectors.includes(sel1), "Exhibits the cache bug");
+        console.log([sel0, sel1, sel2, sel3, sel4, sel5].join(" "));
 
         // Check individual correctness
         assert.isTrue(selectors.includes(sel0), "Does not contain sel0");
+        assert.isTrue(selectors.includes(sel1), "Does not contain sel1");
         assert.isTrue(selectors.includes(sel2), "Does not contain sel2");
-        assert.isTrue(selectors.includes(sel3), "Does not contain sel3");
+        assert.isTrue(selectors.includes(sel4), "Does not contain sel4");
+        assert.isTrue(selectors.includes(sel5), "Does not contain sel5");
 
-        assert.isFalse(selectors.includes(sel1), "Contains sel1");
+        assert.isFalse(selectors.includes(sel3), "Contains sel3");
     });
 });
