@@ -54,8 +54,8 @@ describe('Cache bug', () => {
     it("should not exhibit the cache bug", async () => {
         // Get the test1Facet's registered functions
         let selectors = await diamondLoupeFacet.facetFunctionSelectors(test1Facet.contractAddress);
-        console.log(selectors);
-        console.log([sel0, sel1, sel2, sel3, sel4, sel5].join(" "));
+        // console.log(selectors);
+        // console.log([sel0, sel1, sel2, sel3, sel4, sel5].join(" "));
 
         // Check individual correctness
         assert.isTrue(selectors.includes(sel0), "Does not contain sel0");
