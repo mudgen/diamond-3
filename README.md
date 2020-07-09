@@ -15,7 +15,7 @@ The `test/diamondExampleTest.js` file gives tests for the `diamondCut` function 
 
 1. The most important thing is reading and understanding the [Diamond Standard](https://github.com/ethereum/EIPs/issues/2535). If something is unclear let me know!
 
-2. The second important thing is using the Diamond Standard [reference implementation](https://github.com/mudgen/Diamond).
+2. The second important thing is using the Diamond Standard reference implementation. You are at the right place because this is the README for the reference implementation.
 
 The reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. It is tested and it works. Use it. Also, using the reference implementation makes your diamond compliant with the standard.
 
