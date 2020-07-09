@@ -7,6 +7,8 @@ The `diamondCut` implementation avoids storage read and writes. Fits 8 function 
 
 The `contracts/DiamondExample.sol` file shows an example of implementing a diamond.
 
+The `contracts/DiamondStorageContract.sol` file shows how to implement Diamond Storage.
+
 The `test/diamondExampleTest.js` file gives tests for the `diamondCut` function and the Diamond Loupe functions.
 
 ## How to Get Started Making Your Diamond
