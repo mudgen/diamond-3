@@ -29,8 +29,8 @@ contract DiamondStorageContract {
     }
     
 
-    function diamondStorage() internal pure returns(DiamondStorage storage ds) {
-        // ds_slot = keccak256("diamond.standard.diamond.storage");
-        assembly { ds_slot := 0xc8fcad8db84d3cc18b4c41d551ea0ee66dd599cde068d998e57d5e09332c131c }
+    function diamondStorage() internal pure returns(DiamondStorage storage ds) {        
+        bytes32 position = keccak256("diamond.standard.diamond.storage");
+        assembly { ds_slot := position }
     }
 }
