@@ -30,15 +30,12 @@ describe('DiamondExampleTest', () => {
 
     before(async () => {
         deployer = new etherlime.EtherlimeGanacheDeployer(aliceAccount.secretKey);
-        diamondExample = await deployer.deploy(DiamondExample);
-        test1Facet = await deployer.deploy(Test1Facet);
-        test2Facet = await deployer.deploy(Test2Facet);
-
-        //console.log(diamondExample);
+        diamondExample = await deployer.deploy(DiamondExample);        
         diamondLoupeFacet = deployer.wrapDeployedContract(DiamondLoupeFacet, diamondExample.contractAddress);
         diamondFacet = deployer.wrapDeployedContract(DiamondFacet, diamondExample.contractAddress);
-    });
-    //function splitAddresses()
+        test1Facet = await deployer.deploy(Test1Facet);
+        test2Facet = await deployer.deploy(Test2Facet);
+    });    
     
     it('should have three facets', async () => {
         result = await diamondLoupeFacet.facetAddresses();
@@ -62,7 +59,7 @@ describe('DiamondExampleTest', () => {
         assert.equal(addresses[2], await diamondLoupeFacet.facetAddress("0x01ffc9a7"));
     });
 
-    it('should get all the facets and function selectors of the contract', async () => {
+    it('should get all the facets and function selectors of the diamond', async () => {
         result = await diamondLoupeFacet.facets();
 
         assert.equal(addresses[0], utils.getAddress(result[0].slice(0,42)));
