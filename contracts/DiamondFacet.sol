@@ -16,6 +16,7 @@ contract DiamondFacet is Diamond, DiamondStorageContract {
     bytes32 constant CLEAR_SELECTOR_MASK = 0xffffffff00000000000000000000000000000000000000000000000000000000;
 
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
+    // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
     struct SlotInfo {
         uint originalSelectorSlotsLength;                
         bytes32 selectorSlot;
