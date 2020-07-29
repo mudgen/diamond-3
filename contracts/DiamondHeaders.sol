@@ -1,9 +1,8 @@
-pragma solidity ^0.6.4;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-
-
-interface Diamond {
+interface IDiamond {
     /// @notice _diamondCut is an array of bytes arrays.
     /// This argument is tightly packed for gas efficiency.
     /// That means no padding with zeros.
@@ -22,7 +21,7 @@ interface Diamond {
 
 // A loupe is a small magnifying glass used to look at diamonds.
 // These functions look at diamonds
-interface DiamondLoupe {        
+interface IDiamondLoupe {        
     /// These functions are expected to be called frequently
     /// by tools. Therefore the return values are tightly
     /// packed for efficiency. That means no padding with zeros.
@@ -61,7 +60,7 @@ interface DiamondLoupe {
     function facetAddress(bytes4 _functionSelector) external view returns(address);    
 }
 
-interface ERC165 {
+interface IERC165 {
     /// @notice Query if a contract implements an interface
     /// @param interfaceID The interface identifier, as specified in ERC-165
     /// @dev Interface identification is specified in ERC-165. This function

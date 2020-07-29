@@ -1,6 +1,9 @@
-pragma solidity ^0.6.4;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
 
 contract DiamondStorageContract {
+
+    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
     struct DiamondStorage {
         
@@ -29,8 +32,8 @@ contract DiamondStorageContract {
     }
     
 
-    function diamondStorage() internal pure returns(DiamondStorage storage ds) {        
-        bytes32 position = keccak256("diamond.standard.diamond.storage");
+    function diamondStorage() internal pure returns(DiamondStorage storage ds) {     
+        bytes32 position = DIAMOND_STORAGE_POSITION;           
         assembly { ds_slot := position }
     }
 }

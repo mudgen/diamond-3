@@ -1,4 +1,5 @@
-pragma solidity ^0.6.4;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
@@ -11,7 +12,7 @@ import "./DiamondStorageContract.sol";
 import "./DiamondHeaders.sol";
 
 
-contract DiamondLoupeFacet is DiamondLoupe, DiamondStorageContract {
+contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     /// These functions are expected to be called frequently
     /// by tools. Therefore the return values are tightly
     /// packed for efficiency. That means no padding with zeros.    

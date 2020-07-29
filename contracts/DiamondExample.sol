@@ -1,4 +1,5 @@
-pragma solidity ^0.6.4;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
@@ -30,29 +31,29 @@ contract DiamondExample is DiamondStorageContract {
         bytes[] memory diamondCut = new bytes[](3);
 
         // Adding cut function
-        diamondCut[0] = abi.encodePacked(diamondFacet, Diamond.diamondCut.selector);
+        diamondCut[0] = abi.encodePacked(diamondFacet, IDiamond.diamondCut.selector);
 
         // Adding diamond loupe functions                
         diamondCut[1] = abi.encodePacked(
             diamondLoupeFacet,
-            DiamondLoupe.facetFunctionSelectors.selector,
-            DiamondLoupe.facets.selector,
-            DiamondLoupe.facetAddress.selector,
-            DiamondLoupe.facetAddresses.selector            
+            IDiamondLoupe.facetFunctionSelectors.selector,
+            IDiamondLoupe.facets.selector,
+            IDiamondLoupe.facetAddress.selector,
+            IDiamondLoupe.facetAddresses.selector            
         );    
 
         // Adding supportsInterface function
-        diamondCut[2] = abi.encodePacked(address(this), ERC165.supportsInterface.selector);
+        diamondCut[2] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
 
         // execute cut function
-        bytes memory cutFunction = abi.encodeWithSelector(Diamond.diamondCut.selector, diamondCut);
+        bytes memory cutFunction = abi.encodeWithSelector(IDiamond.diamondCut.selector, diamondCut);
         (bool success,) = address(diamondFacet).delegatecall(cutFunction);
         require(success, "Adding functions failed.");        
 
         // adding ERC165 data
-        ds.supportedInterfaces[ERC165.supportsInterface.selector] = true;
-        ds.supportedInterfaces[Diamond.diamondCut.selector] = true;
-        bytes4 interfaceID = DiamondLoupe.facets.selector ^ DiamondLoupe.facetFunctionSelectors.selector ^ DiamondLoupe.facetAddresses.selector ^ DiamondLoupe.facetAddress.selector;
+        ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;
+        ds.supportedInterfaces[IDiamond.diamondCut.selector] = true;
+        bytes4 interfaceID = IDiamondLoupe.facets.selector ^ IDiamondLoupe.facetFunctionSelectors.selector ^ IDiamondLoupe.facetAddresses.selector ^ IDiamondLoupe.facetAddress.selector;
         ds.supportedInterfaces[interfaceID] = true;
     }
 
@@ -65,8 +66,10 @@ contract DiamondExample is DiamondStorageContract {
 
     // Finds facet for function that is called and executes the
     // function if it is found and returns any value.
-    fallback() external payable {
-        DiamondStorage storage ds = diamondStorage();
+    fallback() external payable {        
+        DiamondStorage storage ds;
+        bytes32 position = DIAMOND_STORAGE_POSITION;           
+        assembly { ds_slot := position }
         address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
         assembly {
