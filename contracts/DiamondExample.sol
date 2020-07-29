@@ -68,7 +68,7 @@ contract DiamondExample is DiamondStorageContract {
     // function if it is found and returns any value.
     fallback() external payable {        
         DiamondStorage storage ds;
-        bytes32 position = DIAMOND_STORAGE_POSITION;           
+        bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;           
         assembly { ds_slot := position }
         address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
