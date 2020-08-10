@@ -13,14 +13,14 @@ contract DiamondStorageContract {
         // maps function selectors to the facets that execute the functions.
         // and maps the selectors to the slot in the selectorSlots array.
         // and maps the selectors to the position in the slot.
-        // func selector => address facet, uint64 slotsIndex, uint64 slotIndex
+        // func selector => address facet, uint32 slotIndex, uint64 slotsIndex
         mapping(bytes4 => bytes32) facets;
 
         // array of slots of function selectors.
         // each slot holds 8 function selectors.
         mapping(uint => bytes32) selectorSlots;  
 
-        // uint128 numSelectorsInSlot, uint128 selectorSlotsLength
+        // uint32 selectorSlotLength, uint32 selectorSlotsLength
         // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
         // selectorSlotLength is the number of selectors in the last slot of
         // selectorSlots.
