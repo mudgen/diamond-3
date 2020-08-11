@@ -62,10 +62,13 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                     bytes32 oldFacet = ds.facets[selector];
                     // add
                     if(oldFacet == 0) {
+                        // update the last slot at then end of the function
                         slot.updateLastSlot = true;
                         ds.facets[selector] = newFacet | bytes32(selectorSlotLength) << 64 | bytes32(selectorSlotsLength);
+                        // clear selector position in slot and add selector
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorSlotLength * 32) | bytes32(selector) >> selectorSlotLength * 32;
                         selectorSlotLength++;
+                        // if slot is full then write it to storage
                         if(selectorSlotLength == 8) {
                             ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
                             slot.selectorSlot = 0;
@@ -76,6 +79,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                     // replace
                     else {
                         require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
+                        // replace old facet address
                         ds.facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
                     }
                 }
