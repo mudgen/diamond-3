@@ -68,7 +68,11 @@ contract('DiamondExampleTest', async accounts => {
 
   function getSelectors (contract) {
     const selectors = contract.abi.reduce((acc, val) => {
-      return acc + val.signature.slice(2)
+      if (val.type === 'function') {
+        return acc + val.signature.slice(2)
+      } else {
+        return acc
+      }
     }, '')
     return selectors
   }

@@ -2,6 +2,7 @@
 pragma solidity ^0.6.12;
 
 contract Test1Facet {    
+    event Mine(address soemthing);
     function test1Func1() external {}    
     function test1Func2() external {}
     function test1Func3() external {}    
