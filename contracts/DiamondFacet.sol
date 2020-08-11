@@ -109,6 +109,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                     else {
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
                         selectorSlotLength--;
+                        slot.newSlot = true;
                     }
                     if(selectorSlotLength == 0) {
                         delete ds.selectorSlots[selectorSlotsLength];
