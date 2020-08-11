@@ -6,7 +6,7 @@ contract DiamondStorageContract {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
     struct DiamondStorage {
-        
+
         // owner of the contract
         address contractOwner;
 
@@ -18,7 +18,7 @@ contract DiamondStorageContract {
 
         // array of slots of function selectors.
         // each slot holds 8 function selectors.
-        mapping(uint => bytes32) selectorSlots;  
+        mapping(uint => bytes32) selectorSlots;
 
         // uint32 selectorSlotLength, uint32 selectorSlotsLength
         // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
@@ -30,10 +30,10 @@ contract DiamondStorageContract {
         // Used to implement ERC-165.
         mapping(bytes4 => bool) supportedInterfaces;
     }
-    
 
-    function diamondStorage() internal pure returns(DiamondStorage storage ds) {     
-        bytes32 position = DIAMOND_STORAGE_POSITION;           
+
+    function diamondStorage() internal pure returns(DiamondStorage storage ds) {
+        bytes32 position = DIAMOND_STORAGE_POSITION;
         assembly { ds_slot := position }
     }
 }

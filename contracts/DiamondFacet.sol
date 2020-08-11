@@ -48,7 +48,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
             bytes32 newFacet = bytes20(currentSlot);
             uint numSelectors = (facetCut.length - 20) / 4;
             uint position = 52;
-            
+
             // adding or replacing functions
             if(newFacet != 0) {
                 // add and replace selectors

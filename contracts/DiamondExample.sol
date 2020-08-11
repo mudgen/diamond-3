@@ -16,31 +16,31 @@ import "./DiamondLoupeFacet.sol";
 contract DiamondExample is DiamondStorageContract {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    
+
     constructor() public {
         DiamondStorage storage ds = diamondStorage();
-        ds.contractOwner = msg.sender;        
+        ds.contractOwner = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
 
         // Create a DiamondFacet contract which implements the Diamond interface
         DiamondFacet diamondFacet = new DiamondFacet();
 
         // Create a DiamondLoupeFacet contract which implements the Diamond Loupe interface
-        DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();   
+        DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
         bytes[] memory diamondCut = new bytes[](3);
 
         // Adding cut function
         diamondCut[0] = abi.encodePacked(diamondFacet, IDiamond.diamondCut.selector);
 
-        // Adding diamond loupe functions                
+        // Adding diamond loupe functions
         diamondCut[1] = abi.encodePacked(
             diamondLoupeFacet,
             IDiamondLoupe.facetFunctionSelectors.selector,
             IDiamondLoupe.facets.selector,
             IDiamondLoupe.facetAddress.selector,
-            IDiamondLoupe.facetAddresses.selector            
-        );    
+            IDiamondLoupe.facetAddresses.selector
+        );
 
         // Adding supportsInterface function
         diamondCut[2] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
@@ -48,7 +48,7 @@ contract DiamondExample is DiamondStorageContract {
         // execute cut function
         bytes memory cutFunction = abi.encodeWithSelector(IDiamond.diamondCut.selector, diamondCut);
         (bool success,) = address(diamondFacet).delegatecall(cutFunction);
-        require(success, "Adding functions failed.");        
+        require(success, "Adding functions failed.");
 
         // adding ERC165 data
         ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;
@@ -66,9 +66,9 @@ contract DiamondExample is DiamondStorageContract {
 
     // Finds facet for function that is called and executes the
     // function if it is found and returns any value.
-    fallback() external payable {        
+    fallback() external payable {
         DiamondStorage storage ds;
-        bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;           
+        bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;
         assembly { ds_slot := position }
         address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
@@ -87,4 +87,3 @@ contract DiamondExample is DiamondStorageContract {
     receive() external payable {
     }
 }
-  
