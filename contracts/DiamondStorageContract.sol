@@ -5,10 +5,19 @@ contract DiamondStorageContract {
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
+    // slotsLength is the number of 32-byte slots in selectorSlot.
+    // lastSlotLength is the number of selectors in the last slot of selectorSlot.
+    struct SelectorSlot {
+        uint64 slotsLength; // 8-byte
+        uint8 lastSlotLength; // 1-byte
+    } // total 9-byte
+
     struct DiamondStorage {
         
         // owner of the contract
         address contractOwner;
+
+        SelectorSlot selectorSlot; // to pack with the address above within one 256-bit
 
         // maps function selectors to the facets that execute the functions.
         // and maps the selectors to the slot in the selectorSlots array.
@@ -24,7 +33,7 @@ contract DiamondStorageContract {
         // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
         // selectorSlotLength is the number of selectors in the last slot of
         // selectorSlots.
-        uint selectorSlotsLength;
+        //uint selectorSlotsLength;
 
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.

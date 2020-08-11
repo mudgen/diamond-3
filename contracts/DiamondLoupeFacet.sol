@@ -37,19 +37,22 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     /// sel1, sel2, sel3 etc. are four-byte function selectors.
     function facets() external view override returns(bytes[] memory) {
         DiamondStorage storage ds = diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);        
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }
+        //uint totalSelectorSlots = ds.selectorSlotsLength;
+        //uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        //totalSelectorSlots = uint128(totalSelectorSlots);        
+        //uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        //if(selectorSlotLength > 0) {
+        //if(ds.selectorSlot.lastSlotLength > 0) {
+        //    totalSelectorSlots++;
+        //}
+        uint totalSelectors = ds.selectorSlot.slotsLength * 8 + ds.selectorSlot.lastSlotLength;
+        uint defaultSize = totalSelectors > 20 ? 20 : totalSelectors;
         
         // get default size of arrays
-        uint defaultSize = totalSelectors;        
-        if(defaultSize > 20) {
-            defaultSize = 20;
-        }        
+        //uint defaultSize = totalSelectors;        
+        //if(defaultSize > 20) {
+        //    defaultSize = 20;
+        //}        
         Facet[] memory facets_ = new Facet[](defaultSize);
         uint8[] memory numFacetSelectors = new uint8[](defaultSize);
         uint numFacets;
@@ -132,13 +135,14 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     /// return abi.encodePacked(selector1, selector2, selector3, ...)
     function facetFunctionSelectors(address _facet) external view override returns(bytes memory) {
         DiamondStorage storage ds = diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);        
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }                       
+        //uint totalSelectorSlots = ds.selectorSlotsLength;
+        //uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        //totalSelectorSlots = uint128(totalSelectorSlots);        
+        //uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        //if(selectorSlotLength > 0) {
+        //    totalSelectorSlots++;
+        //}                       
+        uint totalSelectors = ds.selectorSlot.slotsLength * 8 + ds.selectorSlot.lastSlotLength;
 
         uint numFacetSelectors;        
         bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
@@ -176,13 +180,15 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     /// return abi.encodePacked(facet1, facet2, facet3, ...)
     function facetAddresses() external view override returns(bytes memory) {
         DiamondStorage storage ds = diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);        
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }        
+        //uint totalSelectorSlots = ds.selectorSlotsLength;
+        //uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
+        //totalSelectorSlots = uint128(totalSelectorSlots);        
+        //uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
+        //if(selectorSlotLength > 0) {
+        //    totalSelectorSlots++;
+        //}        
+        uint totalSelectors = ds.selectorSlot.slotsLength * 8 + ds.selectorSlot.lastSlotLength;
+
         address[] memory facets_ = new address[](totalSelectors);
         uint numFacets;
         uint selectorCount;

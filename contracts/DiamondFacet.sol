@@ -19,7 +19,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
     // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
     struct SlotInfo {
-        uint originalSelectorSlotsLength;
+        //uint originalSelectorSlotsLength;
         bytes32 selectorSlot;
         uint oldSelectorSlotsIndex;
         uint oldSelectorSlotIndex;
@@ -31,9 +31,11 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
         DiamondStorage storage ds = diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
         SlotInfo memory slot;
-        slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
-        uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
-        uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
+        //slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
+        //uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
+        uint selectorSlotsLength = ds.selectorSlot.slotsLength;
+        //uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
+        uint selectorSlotLength = ds.selectorSlot.lastSlotLength;
         if(selectorSlotLength > 0) {
             slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
         }
@@ -121,9 +123,14 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                 }
             }
         }
-        uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
-        if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
-            ds.selectorSlotsLength = newSelectorSlotsLength;
+        //uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
+        //if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
+        if (selectorSlotsLength != ds.selectorSlot.slotsLength || selectorSlotLength != ds.selectorSlot.lastSlotLength) {
+            //ds.selectorSlotsLength = newSelectorSlotsLength;
+            ds.selectorSlot = SelectorSlot({
+                slotsLength: uint64(selectorSlotsLength),
+                lastSlotLength: uint8(selectorSlotLength)
+            });
         }
         if(slot.newSlot) {
             ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
