@@ -20,7 +20,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
     // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
     struct SlotInfo {
-        uint originalSelectorSlotsLength;
+        //uint originalSelectorSlotsLength;
         bytes32 selectorSlot;
         uint oldSelectorSlotsIndex;
         uint oldSelectorSlotIndex;
@@ -32,12 +32,15 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
         DiamondStorage storage ds = diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
         SlotInfo memory slot;
-        slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
-        uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
-        uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
+        //slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
+        //uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
+        //uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
+        uint selectorSlotsLength = ds.selectorSlotsLength.slotsLength;
+        uint selectorSlotLength = ds.selectorSlotsLength.lastSlotLength;
         if(selectorSlotLength > 0) {
             slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
         }
+
         // loop through diamond cut
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
@@ -130,9 +133,15 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                 }
             }
         }
-        uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
-        if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
-            ds.selectorSlotsLength = newSelectorSlotsLength;
+        //uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
+        //if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
+        if (selectorSlotsLength != ds.selectorSlotsLength.slotsLength ||
+            selectorSlotLength != ds.selectorSlotsLength.lastSlotLength) {
+            //ds.selectorSlotsLength = newSelectorSlotsLength;
+            ds.selectorSlotsLength = SelectorSlotsLength({
+                slotsLength: uint32(selectorSlotsLength),
+                lastSlotLength: uint8(selectorSlotLength)
+            });
         }
         if(slot.updateLastSlot && selectorSlotLength > 0) {
             ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
