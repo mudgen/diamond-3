@@ -37,14 +37,9 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     /// sel1, sel2, sel3 etc. are four-byte function selectors.
     function facets() external view override returns(bytes[] memory) {
         DiamondStorage storage ds = diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }
-
+        uint totalSelectorSlots = ds.selectorSlotsLength;        
+        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        
         // get default size of arrays
         uint defaultSize = totalSelectors;
         if(defaultSize > 20) {
@@ -133,13 +128,8 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     function facetFunctionSelectors(address _facet) external view override returns(bytes memory) {
         DiamondStorage storage ds = diamondStorage();
         uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }
-
+        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        
         uint numFacetSelectors;
         bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
         uint selectorCount;
@@ -177,12 +167,8 @@ contract DiamondLoupeFacet is IDiamondLoupe, DiamondStorageContract {
     function facetAddresses() external view override returns(bytes memory) {
         DiamondStorage storage ds = diamondStorage();
         uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint selectorSlotLength = uint128(totalSelectorSlots >> 128);
-        totalSelectorSlots = uint128(totalSelectorSlots);
-        uint totalSelectors = totalSelectorSlots * 8 + selectorSlotLength;
-        if(selectorSlotLength > 0) {
-            totalSelectorSlots++;
-        }
+        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        
         address[] memory facets_ = new address[](totalSelectors);
         uint numFacets;
         uint selectorCount;
