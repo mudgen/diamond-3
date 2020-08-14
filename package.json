@@ -1,5 +1,5 @@
 {
-  "name": "etherlime-project",
+  "name": "diamond-standard-reference-implementation",
   "version": "1.0.0",
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "etherlime-lib": "^1.2.0",
-    "ethers": "^4.0.45"
+    "truffle": "^5.1.36"
+  },
+  "devDependencies": {
+    "standard": "^14.3.4"
   }
 }

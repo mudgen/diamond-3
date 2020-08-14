@@ -4,3 +4,4 @@ build
 coverage
 stuff.txt
 deployment/deploy.js
+.vscode
