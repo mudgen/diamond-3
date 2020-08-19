@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
@@ -13,11 +13,11 @@ import "./DiamondHeaders.sol";
 import "./DiamondFacet.sol";
 import "./DiamondLoupeFacet.sol";
 
-contract DiamondExample is DiamondStorageContract {
+contract DiamondExample is DiamondStorageContract, DiamondFacet {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    constructor() public {
+    constructor() {
         DiamondStorage storage ds = diamondStorage();
         ds.contractOwner = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
@@ -28,13 +28,13 @@ contract DiamondExample is DiamondStorageContract {
         // Create a DiamondLoupeFacet contract which implements the Diamond Loupe interface
         DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
-        bytes[] memory diamondCut = new bytes[](3);
+        bytes[] memory cut = new bytes[](3);
 
         // Adding cut function
-        diamondCut[0] = abi.encodePacked(diamondFacet, IDiamond.diamondCut.selector);
+        cut[0] = abi.encodePacked(diamondFacet, IDiamond.diamondCut.selector);
 
         // Adding diamond loupe functions
-        diamondCut[1] = abi.encodePacked(
+        cut[1] = abi.encodePacked(
             diamondLoupeFacet,
             IDiamondLoupe.facetFunctionSelectors.selector,
             IDiamondLoupe.facets.selector,
@@ -43,13 +43,11 @@ contract DiamondExample is DiamondStorageContract {
         );
 
         // Adding supportsInterface function
-        diamondCut[2] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
+        cut[2] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
 
-        // execute cut function
-        bytes memory cutFunction = abi.encodeWithSelector(IDiamond.diamondCut.selector, diamondCut);
-        (bool success,) = address(diamondFacet).delegatecall(cutFunction);
-        require(success, "Adding functions failed.");
-
+        // execute non-standard internal diamondCut function to add functions
+        diamondCut(cut);
+        
         // adding ERC165 data
         ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;
         ds.supportedInterfaces[IDiamond.diamondCut.selector] = true;
@@ -69,7 +67,7 @@ contract DiamondExample is DiamondStorageContract {
     fallback() external payable {
         DiamondStorage storage ds;
         bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;
-        assembly { ds_slot := position }
+        assembly { ds.slot := position }
         address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
         assembly {
@@ -84,6 +82,5 @@ contract DiamondExample is DiamondStorageContract {
         }
     }
 
-    receive() external payable {
-    }
+    receive() external payable {}
 }
