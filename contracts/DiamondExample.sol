@@ -56,6 +56,7 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
     }
 
     // This is an immutable functions because it is defined directly in the diamond.
+    // Why is it here instead of in a facet?  No reason, just to show an immutable function.
     // This implements ERC-165.
     function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
         DiamondStorage storage ds = diamondStorage();
