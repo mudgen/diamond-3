@@ -63,8 +63,8 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
         return ds.supportedInterfaces[_interfaceID];
     }
 
-    // Finds facet for function that is called and executes the
-    // function if it is found and returns any value.
+    // Find facet for function that is called and execute the
+    // function if a facet is found and return any value.
     fallback() external payable {
         DiamondStorage storage ds;
         bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;
@@ -72,7 +72,7 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
         address facet = address(bytes20(ds.facets[msg.sig]));
         require(facet != address(0), "Function does not exist.");
         assembly {
-            let ptr := mload(0x40)
+            let ptr := 0
             calldatacopy(ptr, 0, calldatasize())
             let result := delegatecall(gas(), facet, ptr, calldatasize(), 0, 0)
             let size := returndatasize()
