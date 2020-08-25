@@ -69,16 +69,14 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
         DiamondStorage storage ds;
         bytes32 position = DiamondStorageContract.DIAMOND_STORAGE_POSITION;
         assembly { ds.slot := position }
-        address facet = address(bytes20(ds.facets[msg.sig]));
-        require(facet != address(0), "Function does not exist.");
+        address facet = address(bytes20(ds.facets[msg.sig]));        
         assembly {            
             calldatacopy(0, 0, calldatasize())
-            let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
-            let size := returndatasize()
-            returndatacopy(0, 0, size)
+            let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)            
+            returndatacopy(0, 0, returndatasize())
             switch result
-            case 0 {revert(0, size)}
-            default {return (0, size)}
+            case 0 {revert(0, returndatasize())}
+            default {return (0, returndatasize())}
         }
     }
 
