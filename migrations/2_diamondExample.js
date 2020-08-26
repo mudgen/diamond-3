@@ -1,11 +1,11 @@
-const DiamondExample = artifacts.require('DiamondExample')
+const Diamond = artifacts.require('Diamond')
 const Test1Facet = artifacts.require('Test1Facet')
 const Test2Facet = artifacts.require('Test2Facet')
 
-module.exports = function (deployer) {
+module.exports = function (deployer, network, accounts) {
   // deployment steps
-  // The constructor inside DiamondExample deploys DiamondFacet and DiamondLoupeFacet
-  deployer.deploy(DiamondExample)
+  // The constructor inside Diamond deploys DiamondFacet and DiamondLoupeFacet
+  deployer.deploy(Diamond, accounts[0])
   deployer.deploy(Test1Facet)
   deployer.deploy(Test2Facet)
 }

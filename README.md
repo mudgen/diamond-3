@@ -5,11 +5,11 @@ Specifically this is a gas efficient implementation of the `diamondCut` function
 
 The `diamondCut` implementation avoids storage read and writes. Fits 8 function selectors in a single storage slot. This is a gas optimization. 
 
-The `contracts/DiamondExample.sol` file shows an example of implementing a diamond.
+The `contracts/Diamond.sol` file shows an example of implementing a diamond.
 
 The `contracts/DiamondStorageContract.sol` file shows how to implement Diamond Storage.
 
-The `test/diamondExampleTest.js` file gives tests for the `diamondCut` function and the Diamond Loupe functions.
+The `test/diamondTest.js` file gives tests for the `diamondCut` function and the Diamond Loupe functions.
 
 ## How to Get Started Making Your Diamond
 
@@ -21,7 +21,7 @@ The reference implementation is more than a reference implementation. It is the 
 
 Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondFacet.sol) and [DiamondLoupeFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondLoupeFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
 
-The [DiamondExample.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondExample.sol) contract could be used as is, or it could be used as a starting point and customized. The contract name should be changed to what you want to call your diamond. This contract is the diamond proxy.
+The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. The contract name should be changed to what you want to call your diamond. This contract is the diamond proxy.
 
 The [DiamondStorageContract.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondStorageContract.sol) contract could be used as is. It shows how to implement Diamond Storage. This contract includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
 
