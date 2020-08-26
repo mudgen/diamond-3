@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 /* global contract artifacts web3 before it assert */
 
-const DiamondExample = artifacts.require('DiamondExample')
+const Diamond = artifacts.require('Diamond')
 const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const DiamondFacet = artifacts.require('DiamondFacet')
 const Test1Facet = artifacts.require('Test1Facet')
@@ -15,7 +15,7 @@ contract('Cache bug test', async accounts => {
   let test1Facet
   let diamondFacet
   let diamondLoupeFacet
-  let diamondExample
+  let diamond
 
   const zeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -29,10 +29,10 @@ contract('Cache bug test', async accounts => {
   const sel5 = 'cbb835f6'
 
   before(async () => {
-    diamondExample = await DiamondExample.deployed()
+    diamond = await Diamond.deployed()
     test1Facet = await Test1Facet.deployed()
-    diamondLoupeFacet = new web3.eth.Contract(DiamondLoupeFacet.abi, diamondExample.address)
-    diamondFacet = new web3.eth.Contract(DiamondFacet.abi, diamondExample.address)
+    diamondLoupeFacet = new web3.eth.Contract(DiamondLoupeFacet.abi, diamond.address)
+    diamondFacet = new web3.eth.Contract(DiamondFacet.abi, diamond.address)
     web3.eth.defaultAccount = accounts[0]
 
     // Add functions
