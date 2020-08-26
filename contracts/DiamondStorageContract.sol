@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity ^0.7.0;
 
 contract DiamondStorageContract {
 
@@ -34,6 +34,6 @@ contract DiamondStorageContract {
 
     function diamondStorage() internal pure returns(DiamondStorage storage ds) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
-        assembly { ds_slot := position }
+        assembly { ds.slot := position }
     }
 }

@@ -35,13 +35,13 @@ contract('Cache bug test', async accounts => {
     diamondFacet = new web3.eth.Contract(DiamondFacet.abi, diamondExample.address)
     web3.eth.defaultAccount = accounts[0]
 
-    // Add facet
+    // Add functions
     let newFacetDescription = test1Facet.address + sel0 + sel1 + sel2 + sel3 + sel4 + sel5
-    await diamondFacet.methods.diamondCut([newFacetDescription]).send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    await diamondFacet.methods.diamondCut([newFacetDescription], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
 
-    // Remove facet
+    // Remove function
     let removalDescription = zeroAddress + sel3
-    await diamondFacet.methods.diamondCut([removalDescription]).send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    await diamondFacet.methods.diamondCut([removalDescription], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
   })
 
   // If the bug is present, this should leave the last slot in cache as

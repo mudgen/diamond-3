@@ -1,6 +1,6 @@
 {
   "name": "diamond-standard-reference-implementation",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "truffle": "^5.1.36"
+    "truffle": "^5.1.40"
   },
   "devDependencies": {
     "standard": "^14.3.4"
