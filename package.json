@@ -4,6 +4,7 @@
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
+    "prettier": "prettier --write contracts/**/*.sol",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -12,6 +13,8 @@
     "truffle": "^5.1.40"
   },
   "devDependencies": {
+    "prettier": "^2.1.1",
+    "prettier-plugin-solidity": "^1.0.0-alpha.56",
     "standard": "^14.3.4"
   }
 }

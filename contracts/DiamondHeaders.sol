@@ -6,7 +6,7 @@ interface IDiamond {
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///         a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors
-    /// This argument is tightly packed for gas efficiency    
+    /// This argument is tightly packed for gas efficiency
     /// That means no padding with zeros.
     /// Here is the structure of _diamondCut:
     /// _diamondCut = [
@@ -19,10 +19,14 @@ interface IDiamond {
     /// @param _init The address of the contract or facet to execute _calldata
     /// @param _calldata A function call, including function selector and arguments
     ///                  _calldata is executed with delegatecall on _init
-    function diamondCut(bytes[] calldata _diamondCut, address _init, bytes calldata _calldata) external;
+    function diamondCut(
+        bytes[] calldata _diamondCut,
+        address _init,
+        bytes calldata _calldata
+    ) external;
+
     event DiamondCut(bytes[] _diamondCut, address _init, bytes _calldata);
 }
-
 
 // A loupe is a small magnifying glass used to look at diamonds.
 // These functions look at diamonds
@@ -43,26 +47,32 @@ interface IDiamondLoupe {
     /// ]
     /// facet is the address of a facet.
     /// sel1, sel2, sel3 etc. are four-byte function selectors.
-    function facets() external view returns(bytes[] memory);
+    function facets() external view returns (bytes[] memory);
 
     /// @notice Gets all the function selectors supported by a specific facet.
     /// @param _facet The facet address.
     /// @return A byte array of function selectors.
     /// The return value is tightly packed. Here is an example:
     /// return abi.encodePacked(selector1, selector2, selector3, ...)
-    function facetFunctionSelectors(address _facet) external view returns(bytes memory);
+    function facetFunctionSelectors(address _facet)
+        external
+        view
+        returns (bytes memory);
 
     /// @notice Get all the facet addresses used by a diamond.
     /// @return A byte array of tightly packed facet addresses.
     /// Example return value:
     /// return abi.encodePacked(facet1, facet2, facet3, ...)
-    function facetAddresses() external view returns(bytes memory);
+    function facetAddresses() external view returns (bytes memory);
 
     /// @notice Gets the facet that supports the given selector.
     /// @dev If facet is not found return address(0).
     /// @param _functionSelector The function selector.
     /// @return The facet address.
-    function facetAddress(bytes4 _functionSelector) external view returns(address);
+    function facetAddress(bytes4 _functionSelector)
+        external
+        view
+        returns (address);
 }
 
 interface IERC165 {
