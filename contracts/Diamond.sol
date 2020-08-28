@@ -8,19 +8,18 @@ pragma experimental ABIEncoderV2;
 * Implementation of an example of a diamond.
 /******************************************************************************/
 
+import "./OwnershipFacet.sol";
 import "./DiamondStorageContract.sol";
 import "./DiamondHeaders.sol";
 import "./DiamondFacet.sol";
 import "./DiamondLoupeFacet.sol";
 
-contract DiamondExample is DiamondStorageContract, DiamondFacet {
+contract Diamond is IERC173Events, IERC165, DiamondStorageContract, DiamondFacet {
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    constructor() {
+    constructor(address owner) payable {
         DiamondStorage storage ds = diamondStorage();
-        ds.contractOwner = msg.sender;
-        emit OwnershipTransferred(address(0), msg.sender);
+        ds.contractOwner = owner;
+        emit OwnershipTransferred(address(0), owner);
 
         // Create a DiamondFacet contract which implements the Diamond interface
         DiamondFacet diamondFacet = new DiamondFacet();
@@ -28,10 +27,16 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
         // Create a DiamondLoupeFacet contract which implements the Diamond Loupe interface
         DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
-        bytes[] memory cut = new bytes[](3);
+        // Create a OwnershipFacet contract which implements the ERC-173 Ownership interface
+        OwnershipFacet ownershipFacet = new OwnershipFacet();
+
+        bytes[] memory cut = new bytes[](4);
 
         // Adding cut function
-        cut[0] = abi.encodePacked(diamondFacet, IDiamond.diamondCut.selector);
+        cut[0] = abi.encodePacked(
+            diamondFacet,
+            IDiamond.diamondCut.selector
+        );
 
         // Adding diamond loupe functions
         cut[1] = abi.encodePacked(
@@ -42,23 +47,42 @@ contract DiamondExample is DiamondStorageContract, DiamondFacet {
             IDiamondLoupe.facetAddresses.selector
         );
 
-        // Adding supportsInterface function
-        cut[2] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
+        // Adding diamond ERC173 functions
+        cut[2] = abi.encodePacked(
+            ownershipFacet,
+            IERC173.transferOwnership.selector,
+            IERC173.owner.selector
+        );
 
-        // execute non-standard internal diamondCut function to add functions
+        // Adding supportsInterface function
+        cut[3] = abi.encodePacked(address(this), IERC165.supportsInterface.selector);
+
+         // execute non-standard internal diamondCut function to add functions
         diamondCut(cut);
         
         // adding ERC165 data
+        // ERC165
         ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;
+
+        // DiamondCut
         ds.supportedInterfaces[IDiamond.diamondCut.selector] = true;
-        bytes4 interfaceID = IDiamondLoupe.facets.selector ^ IDiamondLoupe.facetFunctionSelectors.selector ^ IDiamondLoupe.facetAddresses.selector ^ IDiamondLoupe.facetAddress.selector;
+
+        // DiamondLoupe
+        bytes4 interfaceID = IDiamondLoupe.facets.selector ^
+            IDiamondLoupe.facetFunctionSelectors.selector ^
+            IDiamondLoupe.facetAddresses.selector ^
+            IDiamondLoupe.facetAddress.selector;
         ds.supportedInterfaces[interfaceID] = true;
+
+        // ERC173
+        ds.supportedInterfaces[IERC173.transferOwnership.selector ^
+            IERC173.owner.selector] = true;
     }
 
     // This is an immutable functions because it is defined directly in the diamond.
     // Why is it here instead of in a facet?  No reason, just to show an immutable function.
     // This implements ERC-165.
-    function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
+    function supportsInterface(bytes4 _interfaceID) external override view returns (bool) {
         DiamondStorage storage ds = diamondStorage();
         return ds.supportedInterfaces[_interfaceID];
     }

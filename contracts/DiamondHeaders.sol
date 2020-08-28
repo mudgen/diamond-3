@@ -74,3 +74,16 @@ interface IERC165 {
     ///  `interfaceID` is not 0xffffffff, `false` otherwise
     function supportsInterface(bytes4 interfaceID) external view returns (bool);
 }
+
+interface IERC173Events {
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+}
+
+interface IERC173 is IERC173Events {
+    function transferOwnership(address newOwner) external;
+
+    function owner() external view returns (address);
+}
