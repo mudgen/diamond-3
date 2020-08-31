@@ -14,8 +14,9 @@ import "./DiamondStorageContract.sol";
 import "./DiamondHeaders.sol";
 
 contract DiamondFacet is IDiamond, DiamondStorageContract {
-    bytes32 constant CLEAR_ADDRESS_MASK = 0x0000000000000000000000000000000000000000ffffffffffffffffffffffff;
-    bytes32 constant CLEAR_SELECTOR_MASK = 0xffffffff00000000000000000000000000000000000000000000000000000000;
+    bytes32 constant CLEAR_ADDRESS_MASK = bytes32(uint(0xffffffffffffffffffffffff));
+                                                                     
+    bytes32 constant CLEAR_SELECTOR_MASK = bytes32(uint(0xffffffff << 224));
 
     // Standard diamondCut external function
     /// @notice Add/replace/remove any number of functions and optionally execute
