@@ -18,8 +18,25 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
     bytes32 constant CLEAR_SELECTOR_MASK = 0xffffffff00000000000000000000000000000000000000000000000000000000;
 
     // Standard diamondCut external function
+    /// @notice Add/replace/remove any number of functions and optionally execute
+    ///         a function with delegatecall
+    /// @param _diamondCut Contains the facet addresses and function selectors
+    /// This argument is tightly packed for gas efficiency    
+    /// That means no padding with zeros.
+    /// Here is the structure of _diamondCut:
+    /// _diamondCut = [
+    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
+    ///     abi.encodePacked(facet, sel1, sel2, sel4, ...),
+    ///     ...
+    /// ]
+    /// facet is the address of a facet
+    /// sel1, sel2, sel3 etc. are four-byte function selectors.
+    /// @param _init The address of the contract or facet to execute _calldata
+    /// @param _calldata A function call, including function selector and arguments
+    ///                  _calldata is executed with delegatecall on _init
     function diamondCut(bytes[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {        
-        externalCut(_diamondCut);        
+        externalCut(_diamondCut);
+        emit DiamondCut(_diamondCut, _init, _calldata);
         if(_calldata.length > 0) {
             address init = _init == address(0)? address(this) : _init;
             // Check that init has contract code
@@ -42,8 +59,7 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
         }
         else if(_init != address(0)) {
             revert("DiamondFacet: _calldata is empty");
-        }                       
-        emit DiamondCut(_diamondCut, _init, _calldata);
+        }                               
     }
 
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
@@ -175,9 +191,9 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
     }
 
     // diamondCut helper function
-    // This code is exaclty the same as the internal diamondCut function, 
+    // This code is almost the same as the internal diamondCut function, 
     // except it is using 'bytes[] calldata _diamondCut' instead of 
-    // 'bytes[] memory _diamondCut'
+    // 'bytes[] memory _diamondCut', and it does not issue the DiamondCut event.
     // The code is duplicated to prevent copying calldata to memory which
     // causes an error for an array of bytes arrays.
     function externalCut(bytes[] calldata _diamondCut) internal {

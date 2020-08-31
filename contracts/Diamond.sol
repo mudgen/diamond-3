@@ -82,9 +82,9 @@ contract Diamond is IERC173Events, IERC165, DiamondStorageContract, DiamondFacet
     // This is an immutable functions because it is defined directly in the diamond.
     // Why is it here instead of in a facet?  No reason, just to show an immutable function.
     // This implements ERC-165.
-    function supportsInterface(bytes4 _interfaceID) external override view returns (bool) {
+    function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
         DiamondStorage storage ds = diamondStorage();
-        return ds.supportedInterfaces[_interfaceID];
+        return ds.supportedInterfaces[_interfaceId];
     }
 
     // Find facet for function that is called and execute the
