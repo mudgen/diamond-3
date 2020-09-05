@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
@@ -10,58 +10,13 @@ pragma experimental ABIEncoderV2;
 * This code is as complex as it is to reduce gas costs.
 /******************************************************************************/
 
-import "./DiamondStorageContract.sol";
-import "./DiamondHeaders.sol";
+import { LibDiamondStorage } from "./LibDiamondStorage.sol";
 
-contract DiamondFacet is IDiamond, DiamondStorageContract {
-    bytes32 constant CLEAR_ADDRESS_MASK = bytes32(uint(0xffffffffffffffffffffffff));
-                                                                     
-    bytes32 constant CLEAR_SELECTOR_MASK = bytes32(uint(0xffffffff << 224));
+library LibDiamond {
+    event DiamondCut(bytes[] _diamondCut, address _init, bytes _calldata);
 
-    // Standard diamondCut external function
-    /// @notice Add/replace/remove any number of functions and optionally execute
-    ///         a function with delegatecall
-    /// @param _diamondCut Contains the facet addresses and function selectors
-    /// This argument is tightly packed for gas efficiency    
-    /// That means no padding with zeros.
-    /// Here is the structure of _diamondCut:
-    /// _diamondCut = [
-    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
-    ///     abi.encodePacked(facet, sel1, sel2, sel4, ...),
-    ///     ...
-    /// ]
-    /// facet is the address of a facet
-    /// sel1, sel2, sel3 etc. are four-byte function selectors.
-    /// @param _init The address of the contract or facet to execute _calldata
-    /// @param _calldata A function call, including function selector and arguments
-    ///                  _calldata is executed with delegatecall on _init
-    function diamondCut(bytes[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {        
-        externalCut(_diamondCut);
-        emit DiamondCut(_diamondCut, _init, _calldata);
-        if(_calldata.length > 0) {
-            address init = _init == address(0)? address(this) : _init;
-            // Check that init has contract code
-            uint contractSize;
-            assembly { contractSize := extcodesize(init) }
-            require(contractSize > 0, "DiamondFacet: _init address has no code");
-            (bool success, bytes memory error) = init.delegatecall(_calldata);
-            if(!success) {
-                if(error.length > 0) {
-                    // bubble up the error
-                    assembly {
-                        let errorSize := mload(error)
-                        revert(add(32, error), errorSize)
-                    }
-                }
-                else {
-                    revert("DiamondFacet: _init function reverted");
-                }
-            }                        
-        }
-        else if(_init != address(0)) {
-            revert("DiamondFacet: _calldata is empty");
-        }                               
-    }
+    bytes32 constant CLEAR_ADDRESS_MASK = bytes32(uint(0xffffffffffffffffffffffff));                                                                     
+    bytes32 constant CLEAR_SELECTOR_MASK = bytes32(uint(0xffffffff << 224));    
 
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
     // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
@@ -74,16 +29,14 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
         bool updateLastSlot;
     }
 
-
-    // diamondCut helper function
-    // This code is almost the same as the internal diamondCut function, 
-    // except it is using 'bytes[] calldata _diamondCut' instead of 
-    // 'bytes[] memory _diamondCut', and it does not issue the DiamondCut event.
+    // Non-standard internal function version of diamondCut
+    // This code is almost the same as externalCut, except it is using
+    // 'bytes[] memory _diamondCut' instead of 'bytes[] calldata _diamondCut'
+    // and it DOES issue the DiamondCut event
     // The code is duplicated to prevent copying calldata to memory which
     // causes an error for an array of bytes arrays.
-    function externalCut(bytes[] calldata _diamondCut) internal {
-        DiamondStorage storage ds = diamondStorage();
-        require(msg.sender == ds.contractOwner, "Must own the contract.");
+    function diamondCut(bytes[] memory _diamondCut) internal {
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         SlotInfo memory slot;
         slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
         uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
@@ -104,9 +57,9 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
             uint position = 52;
 
             // adding or replacing functions
-            if(newFacet != 0) {                
+            if (newFacet != 0) {
                 // add and replace selectors
-                for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
+                for (uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
                     assembly {
                         selector := mload(add(facetCut,position))
@@ -169,11 +122,11 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
                     else {
                         // clears the selector we are deleting and puts the last selector in its place.
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
-                        selectorSlotLength--;                        
+                        selectorSlotLength--;
                     }
                     if(selectorSlotLength == 0) {
                         delete ds.selectorSlots[selectorSlotsLength];
-                        slot.selectorSlot = 0;                        
+                        slot.selectorSlot = 0;
                     }
                     if(lastSelector != selector) {
                         // update last selector slot position info
@@ -189,6 +142,8 @@ contract DiamondFacet is IDiamond, DiamondStorageContract {
         }
         if(slot.updateLastSlot && selectorSlotLength > 0) {
             ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
-        }        
+        }
+        emit DiamondCut(_diamondCut, address(0), new bytes(0));
     }
+
 }

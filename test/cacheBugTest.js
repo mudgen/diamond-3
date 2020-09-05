@@ -2,7 +2,6 @@
 /* global contract artifacts web3 before it assert */
 
 const Diamond = artifacts.require('Diamond')
-const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const DiamondFacet = artifacts.require('DiamondFacet')
 const Test1Facet = artifacts.require('Test1Facet')
 
@@ -14,7 +13,6 @@ const Test1Facet = artifacts.require('Test1Facet')
 contract('Cache bug test', async accounts => {
   let test1Facet
   let diamondFacet
-  let diamondLoupeFacet
   let diamond
 
   const zeroAddress = '0x0000000000000000000000000000000000000000'
@@ -31,7 +29,6 @@ contract('Cache bug test', async accounts => {
   before(async () => {
     diamond = await Diamond.deployed()
     test1Facet = await Test1Facet.deployed()
-    diamondLoupeFacet = new web3.eth.Contract(DiamondLoupeFacet.abi, diamond.address)
     diamondFacet = new web3.eth.Contract(DiamondFacet.abi, diamond.address)
     web3.eth.defaultAccount = accounts[0]
 
@@ -51,7 +48,7 @@ contract('Cache bug test', async accounts => {
 
   it('should not exhibit the cache bug', async () => {
     // Get the test1Facet's registered functions
-    const selectors = await diamondLoupeFacet.methods.facetFunctionSelectors(test1Facet.address).call()
+    const selectors = await diamondFacet.methods.facetFunctionSelectors(test1Facet.address).call()
     // console.log([sel0, sel1, sel2, sel3, sel4, sel5].join(" "));
 
     // Check individual correctness
