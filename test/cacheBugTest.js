@@ -42,9 +42,10 @@ contract('Cache bug test', async accounts => {
     let newFacetDescription = test1Facet.address + sel0 + sel1 + sel2 + sel3 + sel4 + sel5 + sel6 + sel7 + sel8 + sel9 + sel10
     await diamondFacet.methods.diamondCut([newFacetDescription], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
 
-    // Remove last function in slot 0 which is 'owner'
+    // Remove function selectors
+    // Function selector for the owner function in slot 0
     ownerSel = '8da5cb5b'
-    let removalDescription = zeroAddress + ownerSel
+    let removalDescription = zeroAddress + ownerSel + sel5 + sel10
     await diamondFacet.methods.diamondCut([removalDescription], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
   })
 
@@ -58,13 +59,13 @@ contract('Cache bug test', async accounts => {
     assert.isTrue(selectors.includes('0x' + sel2), 'Does not contain sel2')
     assert.isTrue(selectors.includes('0x' + sel3), 'Does not contain sel3')
     assert.isTrue(selectors.includes('0x' + sel4), 'Does not contain sel4')
-    assert.isTrue(selectors.includes('0x' + sel5), 'Does not contain sel5')
     assert.isTrue(selectors.includes('0x' + sel6), 'Does not contain sel6')
     assert.isTrue(selectors.includes('0x' + sel7), 'Does not contain sel7')
     assert.isTrue(selectors.includes('0x' + sel8), 'Does not contain sel8')
     assert.isTrue(selectors.includes('0x' + sel9), 'Does not contain sel9')
-    assert.isTrue(selectors.includes('0x' + sel10), 'Does not contain sel10')
 
     assert.isFalse(selectors.includes('0x' + ownerSel), 'Contains ownerSel')
+    assert.isFalse(selectors.includes('0x' + sel5), 'Contains sel5')
+    assert.isFalse(selectors.includes('0x' + sel10), 'Contains sel10')
   })
 })

@@ -85,9 +85,11 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     function externalCut(bytes[] calldata _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
-                SlotInfo memory slot;        
+        SlotInfo memory slot;        
         slot.originalSelectorCount = ds.selectorCount;
+        // Get how many 32 byte slots are used
         uint selectorSlotCount = slot.originalSelectorCount / 8;
+        // Get how many function selectors are in the last 32 byte slot
         uint selectorsInSlot = slot.originalSelectorCount % 8;
         if(selectorsInSlot > 0) {
             slot.selectorSlot = ds.selectorSlots[selectorSlotCount];
