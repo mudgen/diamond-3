@@ -71,8 +71,8 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         uint originalSelectorCount;
         uint newSelectorCount;
         bytes32 selectorSlot;
-        uint oldSelectorSlotsIndex;
-        uint oldSelectorSlotIndex;
+        uint oldSelectorsSlotCount;
+        uint oldSelectorsInSlot;
         bytes32 oldSelectorSlot;
         bool updateLastSlot;
     }
@@ -85,7 +85,7 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     function externalCut(bytes[] calldata _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
-        SlotInfo memory slot;        
+                SlotInfo memory slot;        
         slot.originalSelectorCount = ds.selectorCount;
         uint selectorSlotCount = slot.originalSelectorCount / 8;
         uint selectorsInSlot = slot.originalSelectorCount % 8;
@@ -155,21 +155,21 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                         slot.selectorSlot = ds.selectorSlots[selectorSlotCount];
                         selectorsInSlot = 8;
                     }
-                    slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
-                    slot.oldSelectorSlotIndex = uint32(uint(oldFacet >> 64));
+                    slot.oldSelectorsSlotCount = uint64(uint(oldFacet));
+                    slot.oldSelectorsInSlot = uint32(uint(oldFacet >> 64));
                     // gets the last selector in the slot
                     bytes4 lastSelector = bytes4(slot.selectorSlot << (selectorsInSlot-1) * 32);
-                    if(slot.oldSelectorSlotsIndex != selectorSlotCount) {
-                        slot.oldSelectorSlot = ds.selectorSlots[slot.oldSelectorSlotsIndex];
+                    if(slot.oldSelectorsSlotCount != selectorSlotCount) {
+                        slot.oldSelectorSlot = ds.selectorSlots[slot.oldSelectorsSlotCount];
                         // clears the selector we are deleting and puts the last selector in its place.
-                        slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
+                        slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorsInSlot * 32) | bytes32(lastSelector) >> slot.oldSelectorsInSlot * 32;
                         // update storage with the modified slot
-                        ds.selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;
+                        ds.selectorSlots[slot.oldSelectorsSlotCount] = slot.oldSelectorSlot;
                         selectorsInSlot--;
                     }
                     else {
                         // clears the selector we are deleting and puts the last selector in its place.
-                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
+                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorsInSlot * 32) | bytes32(lastSelector) >> slot.oldSelectorsInSlot * 32;
                         selectorsInSlot--;                        
                     }
                     if(selectorsInSlot == 0) {

@@ -20,10 +20,7 @@ library LibDiamondStorage {
         // each slot holds 8 function selectors.
         mapping(uint => bytes32) selectorSlots;
 
-        // uint32 selectorSlotLength, uint32 selectorSlotsLength
-        // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
-        // selectorSlotLength is the number of selectors in the last slot of
-        // selectorSlots.
+        // The number of function selectors in selectorSlots
         uint selectorCount;
 
         // Used to query if a contract implements an interface.
