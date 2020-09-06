@@ -20,8 +20,9 @@ library LibDiamond {
 
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
     // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
-   struct SlotInfo {
+   struct SlotInfo {               
         uint originalSelectorCount;
+        uint newSelectorCount;
         bytes32 selectorSlot;
         uint oldSelectorSlotsIndex;
         uint oldSelectorSlotIndex;
@@ -35,18 +36,18 @@ library LibDiamond {
     // The code is duplicated to prevent copying calldata to memory which
     // causes an error for an array of bytes arrays.
     function diamondCut(bytes[] memory _diamondCut) internal {
-        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        SlotInfo memory slot;
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();        
+        SlotInfo memory slot;        
         slot.originalSelectorCount = ds.selectorCount;
-        uint selectorCount = slot.originalSelectorCount;
-        uint selectorsInSlot = selectorCount % 8;
+        uint selectorSlotCount = slot.originalSelectorCount / 8;
+        uint selectorsInSlot = slot.originalSelectorCount % 8;
         if(selectorsInSlot > 0) {
-            slot.selectorSlot = ds.selectorSlots[selectorCount];
+            slot.selectorSlot = ds.selectorSlots[selectorSlotCount];
         }
         // loop through diamond cut
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
-            require(facetCut.length > 20, "Missing facet or selector info.");
+            require(facetCut.length > 20, "LibDiamond: Missing facet or selector info.");
             bytes32 currentSlot;
             assembly {
                 currentSlot := mload(add(facetCut,32))
@@ -69,16 +70,16 @@ library LibDiamond {
                     if(oldFacet == 0) {
                         // update the last slot at then end of the function
                         slot.updateLastSlot = true;
-                        ds.facets[selector] = newFacet | bytes32(selectorsInSlot) << 64 | bytes32(selectorCount);
+                        ds.facets[selector] = newFacet | bytes32(selectorsInSlot) << 64 | bytes32(selectorSlotCount);
                         // clear selector position in slot and add selector
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorsInSlot * 32) | bytes32(selector) >> selectorsInSlot * 32;
                         selectorsInSlot++;
                         // if slot is full then write it to storage
                         if(selectorsInSlot == 8) {
-                            ds.selectorSlots[selectorCount] = slot.selectorSlot;
+                            ds.selectorSlots[selectorSlotCount] = slot.selectorSlot;
                             slot.selectorSlot = 0;
                             selectorsInSlot = 0;
-                            selectorCount++;
+                            selectorSlotCount++;
                         }
                     }
                     // replace
@@ -102,15 +103,15 @@ library LibDiamond {
                     require(oldFacet != 0, "Function doesn't exist. Can't remove.");
                     // Current slot is empty so get the slot before it
                     if(slot.selectorSlot == 0) {
-                        selectorCount--;
-                        slot.selectorSlot = ds.selectorSlots[selectorCount];
+                        selectorSlotCount--;
+                        slot.selectorSlot = ds.selectorSlots[selectorSlotCount];
                         selectorsInSlot = 8;
                     }
                     slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
                     slot.oldSelectorSlotIndex = uint32(uint(oldFacet >> 64));
                     // gets the last selector in the slot
                     bytes4 lastSelector = bytes4(slot.selectorSlot << (selectorsInSlot-1) * 32);
-                    if(slot.oldSelectorSlotsIndex != selectorCount) {
+                    if(slot.oldSelectorSlotsIndex != selectorSlotCount) {
                         slot.oldSelectorSlot = ds.selectorSlots[slot.oldSelectorSlotsIndex];
                         // clears the selector we are deleting and puts the last selector in its place.
                         slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
@@ -124,7 +125,7 @@ library LibDiamond {
                         selectorsInSlot--;                        
                     }
                     if(selectorsInSlot == 0) {
-                        delete ds.selectorSlots[selectorCount];
+                        delete ds.selectorSlots[selectorSlotCount];
                         slot.selectorSlot = 0;                        
                     }
                     if(lastSelector != selector) {
@@ -134,12 +135,13 @@ library LibDiamond {
                     delete ds.facets[selector];
                 }
             }
-        }        
-        if(selectorCount != slot.originalSelectorCount) {
-            ds.selectorCount = selectorCount;
+        }
+        slot.newSelectorCount = selectorSlotCount * 8 + selectorsInSlot;
+        if(slot.newSelectorCount != slot.originalSelectorCount) {
+            ds.selectorCount = slot.newSelectorCount;
         }
         if(slot.updateLastSlot && selectorsInSlot > 0) {
-            ds.selectorSlots[selectorCount] = slot.selectorSlot;
+            ds.selectorSlots[selectorSlotCount] = slot.selectorSlot;
         }
         emit DiamondCut(_diamondCut, address(0), new bytes(0));
     }

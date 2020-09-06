@@ -27,10 +27,10 @@ contract Diamond {
         DiamondFacet diamondFacet = new DiamondFacet();
         
         // Create a OwnershipFacet contract which implements the ERC-173 Ownership interface
-        OwnershipFacet ownershipFacet = new OwnershipFacet();
-
+        OwnershipFacet ownershipFacet = new OwnershipFacet();        
+        
         bytes[] memory cut = new bytes[](2);
-
+        
         // Adding diamond functions
         cut[0] = abi.encodePacked(
             diamondFacet,
@@ -40,7 +40,7 @@ contract Diamond {
             DiamondFacet.facetAddress.selector,
             DiamondFacet.facetAddresses.selector,
             DiamondFacet.supportsInterface.selector
-        );        
+        );
 
         // Adding diamond ERC173 functions
         cut[1] = abi.encodePacked(
