@@ -66,8 +66,9 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
 
     // This struct is used to prevent getting the error "CompilerError: Stack too deep, try removing local variables."
     // See this article: https://medium.com/1milliondevs/compilererror-stack-too-deep-try-removing-local-variables-solved-a6bcecc16231
+    
     struct SlotInfo {
-        uint originalSelectorSlotsLength;
+        uint originalSelectorCount;
         bytes32 selectorSlot;
         uint oldSelectorSlotsIndex;
         uint oldSelectorSlotIndex;
@@ -84,11 +85,11 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
         SlotInfo memory slot;
-        slot.originalSelectorSlotsLength = ds.selectorSlotsLength;
-        uint selectorSlotsLength = uint128(slot.originalSelectorSlotsLength);
-        uint selectorSlotLength = uint128(slot.originalSelectorSlotsLength >> 128);
-        if(selectorSlotLength > 0) {
-            slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
+        slot.originalSelectorCount = ds.selectorCount;
+        uint selectorCount = slot.originalSelectorCount;
+        uint selectorsInSlot = selectorCount % 8;
+        if(selectorsInSlot > 0) {
+            slot.selectorSlot = ds.selectorSlots[selectorCount];
         }
         // loop through diamond cut
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
@@ -116,16 +117,16 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                     if(oldFacet == 0) {
                         // update the last slot at then end of the function
                         slot.updateLastSlot = true;
-                        ds.facets[selector] = newFacet | bytes32(selectorSlotLength) << 64 | bytes32(selectorSlotsLength);
+                        ds.facets[selector] = newFacet | bytes32(selectorsInSlot) << 64 | bytes32(selectorCount);
                         // clear selector position in slot and add selector
-                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorSlotLength * 32) | bytes32(selector) >> selectorSlotLength * 32;
-                        selectorSlotLength++;
+                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorsInSlot * 32) | bytes32(selector) >> selectorsInSlot * 32;
+                        selectorsInSlot++;
                         // if slot is full then write it to storage
-                        if(selectorSlotLength == 8) {
-                            ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
+                        if(selectorsInSlot == 8) {
+                            ds.selectorSlots[selectorCount] = slot.selectorSlot;
                             slot.selectorSlot = 0;
-                            selectorSlotLength = 0;
-                            selectorSlotsLength++;
+                            selectorsInSlot = 0;
+                            selectorCount++;
                         }
                     }
                     // replace
@@ -149,29 +150,29 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                     require(oldFacet != 0, "Function doesn't exist. Can't remove.");
                     // Current slot is empty so get the slot before it
                     if(slot.selectorSlot == 0) {
-                        selectorSlotsLength--;
-                        slot.selectorSlot = ds.selectorSlots[selectorSlotsLength];
-                        selectorSlotLength = 8;
+                        selectorCount--;
+                        slot.selectorSlot = ds.selectorSlots[selectorCount];
+                        selectorsInSlot = 8;
                     }
                     slot.oldSelectorSlotsIndex = uint64(uint(oldFacet));
                     slot.oldSelectorSlotIndex = uint32(uint(oldFacet >> 64));
                     // gets the last selector in the slot
-                    bytes4 lastSelector = bytes4(slot.selectorSlot << (selectorSlotLength-1) * 32);
-                    if(slot.oldSelectorSlotsIndex != selectorSlotsLength) {
+                    bytes4 lastSelector = bytes4(slot.selectorSlot << (selectorsInSlot-1) * 32);
+                    if(slot.oldSelectorSlotsIndex != selectorCount) {
                         slot.oldSelectorSlot = ds.selectorSlots[slot.oldSelectorSlotsIndex];
                         // clears the selector we are deleting and puts the last selector in its place.
                         slot.oldSelectorSlot = slot.oldSelectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
                         // update storage with the modified slot
                         ds.selectorSlots[slot.oldSelectorSlotsIndex] = slot.oldSelectorSlot;
-                        selectorSlotLength--;
+                        selectorsInSlot--;
                     }
                     else {
                         // clears the selector we are deleting and puts the last selector in its place.
                         slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> slot.oldSelectorSlotIndex * 32) | bytes32(lastSelector) >> slot.oldSelectorSlotIndex * 32;
-                        selectorSlotLength--;                        
+                        selectorsInSlot--;                        
                     }
-                    if(selectorSlotLength == 0) {
-                        delete ds.selectorSlots[selectorSlotsLength];
+                    if(selectorsInSlot == 0) {
+                        delete ds.selectorSlots[selectorCount];
                         slot.selectorSlot = 0;                        
                     }
                     if(lastSelector != selector) {
@@ -181,13 +182,12 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                     delete ds.facets[selector];
                 }
             }
+        }        
+        if(selectorCount != slot.originalSelectorCount) {
+            ds.selectorCount = selectorCount;
         }
-        uint newSelectorSlotsLength = selectorSlotLength << 128 | selectorSlotsLength;
-        if(newSelectorSlotsLength != slot.originalSelectorSlotsLength) {
-            ds.selectorSlotsLength = newSelectorSlotsLength;
-        }
-        if(slot.updateLastSlot && selectorSlotLength > 0) {
-            ds.selectorSlots[selectorSlotsLength] = slot.selectorSlot;
+        if(slot.updateLastSlot && selectorsInSlot > 0) {
+            ds.selectorSlots[selectorCount] = slot.selectorSlot;
         }        
     }
 
@@ -197,62 +197,49 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     /// by tools. Therefore the return values are tightly
     /// packed for efficiency. That means no padding with zeros.
 
-    struct Facet {
-        address facet;
-        bytes4[] functionSelectors;
-    }
-
+    // struct Facet {
+    //     address facet;
+    //     bytes4[] functionSelectors;
+    // }
     /// @notice Gets all facets and their selectors.
-    /// @return An array of bytes arrays containing each facet
-    ///         and each facet's selectors.
-    /// The return value is tightly packed.
-    /// That means no padding with zeros.
-    /// Here is the structure of the return value:
-    /// returnValue = [
-    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
-    ///     abi.encodePacked(facet, sel1, sel2, sel3, ...),
-    ///     ...
-    /// ]
-    /// facet is the address of a facet.
-    /// sel1, sel2, sel3 etc. are four-byte function selectors.
-    function facets() external view override returns(bytes[] memory) {
+    /// @return facets_ Facet
+    function facets() external view override returns(Facet[] memory facets_) {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;        
-        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        uint selectorCount = ds.selectorCount;        
         
         // get default size of arrays
-        uint defaultSize = totalSelectors;
+        uint defaultSize = selectorCount;
         if(defaultSize > 20) {
             defaultSize = 20;
         }
-        Facet[] memory facets_ = new Facet[](defaultSize);
+        Facet[] memory facetsCollector = new Facet[](defaultSize);
         uint8[] memory numFacetSelectors = new uint8[](defaultSize);
         uint numFacets;
-        uint selectorCount;
+        uint selectorIndex;
         // loop through function selectors
-        for(uint slotIndex; selectorCount < totalSelectors; slotIndex++) {
+        for(uint slotIndex; selectorIndex < selectorCount; slotIndex++) {
             bytes32 slot = ds.selectorSlots[slotIndex];
-            for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
-                selectorCount++;
-                if(selectorCount > totalSelectors) {
+            for(uint selectorSlotIndex; selectorSlotIndex < 8; selectorSlotIndex++) {
+                selectorIndex++;
+                if(selectorIndex > selectorCount) {
                     break;
                 }
-                bytes4 selector = bytes4(slot << selectorIndex * 32);
+                bytes4 selector = bytes4(slot << selectorSlotIndex * 32);
                 address facet = address(bytes20(ds.facets[selector]));
                 bool continueLoop = false;
                 for(uint facetIndex; facetIndex < numFacets; facetIndex++) {
-                    if(facets_[facetIndex].facet == facet) {
-                        uint arrayLength = facets_[facetIndex].functionSelectors.length;
+                    if(facetsCollector[facetIndex].facet == facet) {
+                        uint arrayLength = facetsCollector[facetIndex].functionSelectors.length;
                         // if array is too small then enlarge it
                         if(numFacetSelectors[facetIndex]+1 > arrayLength) {
                             bytes4[] memory biggerArray = new bytes4[](arrayLength + defaultSize);
                             // copy contents of old array
                             for(uint i; i < arrayLength; i++) {
-                                biggerArray[i] = facets_[facetIndex].functionSelectors[i];
+                                biggerArray[i] = facetsCollector[facetIndex].functionSelectors[i];
                             }
-                            facets_[facetIndex].functionSelectors = biggerArray;
+                            facetsCollector[facetIndex].functionSelectors = biggerArray;
                         }
-                        facets_[facetIndex].functionSelectors[numFacetSelectors[facetIndex]] = selector;
+                        facetsCollector[facetIndex].functionSelectors[numFacetSelectors[facetIndex]] = selector;
                         // probably will never have more than 255 functions from one facet contract
                         require(numFacetSelectors[facetIndex] < 255);
                         numFacetSelectors[facetIndex]++;
@@ -283,61 +270,50 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                 numFacets++;
             }
         }
-        bytes[] memory returnFacets = new bytes[](numFacets);
+        facets_ = new Facet[](numFacets);        
         for(uint facetIndex; facetIndex < numFacets; facetIndex++) {
             uint numSelectors = numFacetSelectors[facetIndex];
-            bytes memory selectorsBytes = new bytes(4 * numSelectors);
-            bytes4[] memory selectors = facets_[facetIndex].functionSelectors;
-            uint bytePosition;
+            bytes4[] memory newFunctionSelectors = new bytes4[](numSelectors);
+            bytes4[] memory oldFunctionSelectors = facetsCollector[facetIndex].functionSelectors;            
             for(uint i; i < numSelectors; i++) {
-                for(uint j; j < 4; j++) {
-                    selectorsBytes[bytePosition] = byte(selectors[i] << j * 8);
-                    bytePosition++;
-                }
+                newFunctionSelectors[i] = oldFunctionSelectors[i];                
             }
-            returnFacets[facetIndex] = abi.encodePacked(facets_[facetIndex].facet, selectorsBytes);
-        }
-        return returnFacets;
-    }
+            facets_[facetIndex].facet = facetsCollector[facetIndex].facet;
+            facets_[facetIndex].functionSelectors = newFunctionSelectors;            
+        }        
+    }    
 
     /// @notice Gets all the function selectors supported by a specific facet.
     /// @param _facet The facet address.
-    /// @return A bytes array of function selectors.
-    /// The return value is tightly packed. Here is an example:
-    /// return abi.encodePacked(selector1, selector2, selector3, ...)
-    function facetFunctionSelectors(address _facet) external view override returns(bytes memory) {
+    /// @return selectors The selectors associated with a facet address.
+    function facetFunctionSelectors(address _facet) external view override returns(bytes4[] memory selectors) {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        uint selectorCount = ds.selectorCount;        
         
-        uint numFacetSelectors;
-        bytes4[] memory facetSelectors = new bytes4[](totalSelectors);
-        uint selectorCount;
+        uint numSelectors;
+        selectors = new bytes4[](selectorCount);
+        uint selectorIndex;
         // loop through function selectors
-        for(uint slotIndex; selectorCount < totalSelectors; slotIndex++) {
+        for(uint slotIndex; selectorIndex < selectorCount; slotIndex++) {
             bytes32 slot = ds.selectorSlots[slotIndex];
-            for(uint selectorIndex; selectorIndex < 8; selectorIndex++) {
-                selectorCount++;
-                if(selectorCount > totalSelectors) {
+            for(uint selectorSlotIndex; selectorSlotIndex < 8; selectorSlotIndex++) {
+                selectorIndex++;
+                if(selectorIndex > selectorCount) {
                     break;
                 }
-                bytes4 selector = bytes4(slot << selectorIndex * 32);
+                bytes4 selector = bytes4(slot << selectorSlotIndex * 32);
                 address facet = address(bytes20(ds.facets[selector]));
                 if(_facet == facet) {
-                    facetSelectors[numFacetSelectors] = selector;
-                    numFacetSelectors++;
+                    selectors[numSelectors] = selector;
+                    numSelectors++;
                 }
             }
         }
-        bytes memory returnBytes = new bytes(4 * numFacetSelectors);
-        uint bytePosition;
-        for(uint i; i < numFacetSelectors; i++) {
-            for(uint j; j < 4; j++) {
-                returnBytes[bytePosition] = byte(facetSelectors[i] << j * 8);
-                bytePosition++;
-            }
+        // Set the number of selectors in the array
+        assembly {
+            mstore(selectors, numSelectors)
         }
-        return returnBytes;
+        
     }
 
     /// @notice Get all the facet addresses used by a diamond.
@@ -346,8 +322,8 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     /// return abi.encodePacked(facet1, facet2, facet3, ...)
     function facetAddresses() external view override returns(bytes memory) {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        uint totalSelectorSlots = ds.selectorSlotsLength;
-        uint totalSelectors = uint128(totalSelectorSlots) * 8 + uint128(totalSelectorSlots >> 128);
+        uint selectorSlotCount = ds.selectorCount;
+        uint totalSelectors = uint128(selectorSlotCount) * 8 + uint128(selectorSlotCount >> 128);
         
         address[] memory facets_ = new address[](totalSelectors);
         uint numFacets;

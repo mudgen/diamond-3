@@ -24,7 +24,7 @@ library LibDiamondStorage {
         // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
         // selectorSlotLength is the number of selectors in the last slot of
         // selectorSlots.
-        uint selectorCount;
+        uint selectorSlotsLength;
 
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.
