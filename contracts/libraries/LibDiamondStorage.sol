@@ -14,17 +14,13 @@ library LibDiamondStorage {
         // and maps the selectors to the slot in the selectorSlots array.
         // and maps the selectors to the position in the slot.
         // func selector => address facet, uint32 slotIndex, uint64 slotsIndex
-        mapping(bytes4 => bytes32) facets;
+        mapping(bytes4 => bytes32) selectorTofacet;
 
-        // array of slots of function selectors.
-        // each slot holds 8 function selectors.
-        mapping(uint => bytes32) selectorSlots;
+        // maps facet addresses to function selectors
+        mapping(address => bytes4[]) facetSelectors;
 
-        // uint32 selectorSlotLength, uint32 selectorSlotsLength
-        // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
-        // selectorSlotLength is the number of selectors in the last slot of
-        // selectorSlots.
-        uint selectorSlotsLength;
+        // facet addresses
+        address[] facetAddresses;
 
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.
