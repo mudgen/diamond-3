@@ -1,13 +1,19 @@
 # Diamond Standard Reference Implementation
 This is the gas-optimized reference implementation for the [diamond standard](https://github.com/ethereum/EIPs/issues/2535).
 
-Specifically this is a gas efficient implementation of the `diamondCut` function and the Diamond Loupe functions from the diamond standard.
+Specifically this is a gas efficient implementation of the `diamondCut` function. It uses the least amount of gas to add/replace/remove functions.
 
+The loupe functions are NOT gas optimized. In this implementation the `facets`, `facetFunctionSelectors`, `facetAddresses` loupe functions are not meant to be called on-chain and may use too much gas or run out of gas when called in on-chain transactions.  In this implementation these functions should be called by off-chain software like websites and Javascript libraries etc., where gas costs do not matter.
+
+The `facetAddress` loupe function is gas efficient and can be called in on-chain transactions.
+ 
 The `diamondCut` implementation avoids storage read and writes. Fits 8 function selectors in a single storage slot. This is a gas optimization. 
 
-The `contracts/Diamond.sol` file shows an example of implementing a diamond.
+The `contracts/Diamond.sol` file shows an example of implementing a diamond. 
 
-The `contracts/DiamondStorageContract.sol` file shows how to implement Diamond Storage.
+The `contracts/facets/DiamondFacet.sol` file includes the standard `diamondCut` function and the loupe functions.
+
+The `contracts/libraries/LibDiamondStorage.sol` file shows how to implement Diamond Storage.
 
 The `test/diamondTest.js` file gives tests for the `diamondCut` function and the Diamond Loupe functions.
 
@@ -19,11 +25,13 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 The reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. It is tested and it works. Use it. Also, using the reference implementation makes your diamond compliant with the standard.
 
-Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondFacet.sol) and [DiamondLoupeFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondLoupeFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
+Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
 
 The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. The contract name should be changed to what you want to call your diamond. This contract is the diamond proxy.
 
-The [DiamondStorageContract.sol](https://github.com/mudgen/Diamond/blob/master/contracts/DiamondStorageContract.sol) contract could be used as is. It shows how to implement Diamond Storage. This contract includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
+The [LibDiamondStorage.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. This contract includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
+
+The [LibDiamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamond.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
 
 ## Calling Diamond Functions
 
