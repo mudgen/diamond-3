@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.1;
 
-contract DiamondStorageContract {
+library LibDiamondStorage {
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
@@ -20,11 +20,8 @@ contract DiamondStorageContract {
         // each slot holds 8 function selectors.
         mapping(uint => bytes32) selectorSlots;
 
-        // uint32 selectorSlotLength, uint32 selectorSlotsLength
-        // selectorSlotsLength is the number of 32-byte slots in selectorSlots.
-        // selectorSlotLength is the number of selectors in the last slot of
-        // selectorSlots.
-        uint selectorSlotsLength;
+        // The number of function selectors in selectorSlots
+        uint selectorCount;
 
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.
