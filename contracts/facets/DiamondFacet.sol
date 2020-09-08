@@ -82,26 +82,23 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     // causes an error for an array of bytes arrays.
     function externalCut(bytes[] calldata _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        require(msg.sender == ds.contractOwner, "Must own the contract.");
-        uint position;
-        for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
-            uint numSelectors;
-            {
-                bytes calldata facetCut = _diamondCut[diamondCutIndex];
-                require(facetCut.length > 20, "DiamondFacet: Missing facet or selector info");
-                numSelectors = (facetCut.length - 20) / 4;
-            }
-            position += 32;
-            bytes32 newFacet;            
+        require(msg.sender == ds.contractOwner, "Must own the contract.");        
+        for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {            
+            bytes memory facetCut = _diamondCut[diamondCutIndex];
+            uint numSelectors = (facetCut.length - 20) / 4;
+            require(numSelectors > 0, "DiamondFacet: Missing facet or selector info");
+            address newFacet;
             assembly {
-                // load facet address
-                // and() to clear bits after first 20 bytes
-                newFacet := and(calldataload(position), 0xffffffffffffffffffffffffffffffffffffffff)
-                position := add(position,20)
-            }                        
-            if(newFacet != 0) {               
+                // load facet address                
+                 newFacet := mload(add(facetCut,32))
+            }
+            // position in memory for parsing selectors                        
+            uint position = 52;
+            // adding or replacing facets
+            if(newFacet != address(0)) {               
+                // add newFacet address if does not exist
                 if(ds.facetSelectors[newFacet].length == 0) {
-                    ds.facetAddresses.push(address(newFacet));
+                    ds.facetAddresses.push(newFacet);
                 }
                 /*
                 // add and replace selectors
