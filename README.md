@@ -1,5 +1,5 @@
 # Diamond Standard Reference Implementation
-This is the gas-optimized reference implementation for the [diamond standard](https://github.com/ethereum/EIPs/issues/2535).
+This is the gas-optimized reference implementation for [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535).
 
 Specifically this is a gas efficient implementation of the `diamondCut` function. It uses the least amount of gas to add/replace/remove functions.
 
@@ -19,17 +19,17 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 ## How to Get Started Making Your Diamond
 
-1. The most important thing is reading and understanding the [Diamond Standard](https://github.com/ethereum/EIPs/issues/2535). If something is unclear let me know!
+1. The most important thing is reading and understanding [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535). If something is unclear let me know!
 
 2. The second important thing is using the Diamond Standard reference implementation. You are at the right place because this is the README for the reference implementation.
 
 The reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. It is tested and it works. Use it. Also, using the reference implementation makes your diamond compliant with the standard.
 
-Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
+Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondFacet.sol) contract as is. It implement the `diamondCut` function and the loupe functions.
 
-The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. The contract name should be changed to what you want to call your diamond. This contract is the diamond proxy.
+The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. This contract is the diamond. Its deployment creates a diamond. It's address is a stable diamond address that does not change.
 
-The [LibDiamondStorage.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. This contract includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
+The [LibDiamondStorage.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. It includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
 
 The [LibDiamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamond.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
 
