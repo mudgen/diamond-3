@@ -71,7 +71,12 @@ contract Diamond {
             IERC173.owner.selector] = true;
     }
 
-    
+    function test() external view returns (address) {        
+        bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
+        LibDiamondStorage.DiamondStorage storage ds;
+        assembly { ds.slot := position }
+        return ds.selectorToFacetAndPosition[0x52ef6b2c].facetAddress;        
+    }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
@@ -79,7 +84,7 @@ contract Diamond {
         LibDiamondStorage.DiamondStorage storage ds;
         bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
         assembly { ds.slot := position }
-        address facet = address(bytes20(ds.facets[msg.sig]));  
+        address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;  
         require(facet != address(0));      
         assembly {            
             calldatacopy(0, 0, calldatasize())
