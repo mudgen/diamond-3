@@ -73,11 +73,12 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
             uint numSelectors = (facetCut.length - 20) / 4;
             require(numSelectors > 0, "DiamondFacet: Missing facet or selector info");
-            address newFacet;
+            bytes32 slot;            
             assembly {
                 // load facet address                
-                 newFacet := mload(add(facetCut,32))
+                 slot := mload(add(facetCut,32))
             }
+            address newFacet = address(bytes20(slot));
             // position in memory for parsing selectors                        
             uint position = 52;
             // adding or replacing facets
@@ -173,7 +174,7 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     /// packed for efficiency. That means no padding with zeros.
 
     // struct Facet {
-    //     address facet;
+    //     address facetAddress;
     //     bytes4[] functionSelectors;
     // }
 
@@ -185,7 +186,7 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         facets_ = new Facet[](numFacets);
         for(uint i; i < numFacets; i++) {
             address facetAddress = ds.facetAddresses[i];
-            facets_[i].facet = facetAddress;            
+            facets_[i].facetAddress = facetAddress;            
             facets_[i].functionSelectors = ds.facetSelectors[facetAddress].selectors;
         }                
     }
@@ -206,15 +207,6 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         //facetAddresses_[0] = ds.facetAddresses[0];
         //facetAddresses_[1] = ds.facetAddresses[1];
 
-    }
-
-    
-    function test() external view returns (address) {        
-        //bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
-        //LibDiamondStorage.DiamondStorage storage ds;
-        //assembly { ds.slot := position }
-        //return ds.selectorToFacetAndPosition[0x52ef6b2c].facetAddress;  
-        return address(this);
     }
 
     /// @notice Gets the facet that supports the given selector.

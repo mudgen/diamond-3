@@ -27,11 +27,12 @@ library LibDiamond {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
             uint numSelectors = (facetCut.length - 20) / 4;
             require(numSelectors > 0, "DiamondFacet: Missing facet or selector info");
-            address newFacet;
+            bytes32 slot;            
             assembly {
                 // load facet address                
-                 newFacet := mload(add(facetCut,32))
+                 slot := mload(add(facetCut,32))
             }
+            address newFacet = address(bytes20(slot));
             // position in memory for parsing selectors                        
             uint position = 52;
             // adding or replacing facets

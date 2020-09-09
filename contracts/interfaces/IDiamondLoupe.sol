@@ -9,7 +9,7 @@ interface IDiamondLoupe {
     /// by tools. 
 
     struct Facet {
-        address facet;
+        address facetAddress;
         bytes4[] functionSelectors;
     }
 

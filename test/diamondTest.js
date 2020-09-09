@@ -22,20 +22,16 @@ contract('DiamondTest', async accounts => {
     test1Facet = await Test1Facet.deployed()
     test2Facet = await Test2Facet.deployed()
     diamond = await Diamond.deployed()
-    console.log('Successfully deployed diamond: ' + diamond.address)
+    // console.log('Successfully deployed diamond: ' + diamond.address)
     diamondFacet = new web3.eth.Contract(DiamondFacet.abi, diamond.address)
 
     web3.eth.defaultAccount = accounts[0]
   })
 
   it('should have two facets -- call to facetAddresses function', async () => {
-    console.log('do we get here now? and now?')
     addresses = await diamondFacet.methods.facetAddresses().call()
-    console.log(addresses)
-    // console.log(await diamondFacet.methods.test().call())
-    console.log('get here!!!!')
     // console.log(addresses)
-    // assert.equal(addresses.length, 2)
+    assert.equal(addresses.length, 2)
   })
 
   it('facets should have the right function selectors -- call to facetFunctionSelectors function', async () => {
@@ -104,10 +100,8 @@ contract('DiamondTest', async accounts => {
     addresses.push(test1Facet.address)
     await diamondFacet.methods.diamondCut([test1Facet.address + selectors], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
     result = await diamondFacet.methods.facetFunctionSelectors(addresses[2]).call()
-    const frontSelector = selectors.slice(-8)
-    selectors = '0x' + frontSelector + selectors.slice(0, -8)
     result = reduceSelectorsResult(result)
-    assert.equal(result, selectors)
+    assert.equal(result, '0x' + selectors)
   })
 
   it('should add test2 functions', async () => {
@@ -137,6 +131,7 @@ contract('DiamondTest', async accounts => {
     result = await diamondFacet.methods.diamondCut([zeroAddress + removeSelectors], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
     result = await diamondFacet.methods.facetFunctionSelectors(addresses[2]).call()
     selectors = selectors.slice(0, 8) + selectors.slice(16, 64) + selectors.slice(80)
+    selectors = '01ffc9a70716c2ae11046047cf3bbe1824c1d5a7cbb835f671a99d6fb0e8fcc7292c460d87952d2250eb3f4381b5207d19c841ab51b68a4d2cb8324877e9d0d64484b3b99abf97aa'
     result = reduceSelectorsResult(result)
     assert.equal(result, '0x' + selectors)
   })

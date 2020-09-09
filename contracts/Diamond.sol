@@ -71,13 +71,6 @@ contract Diamond {
             IERC173.owner.selector] = true;
     }
 
-    function test() external view returns (address) {        
-        bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
-        LibDiamondStorage.DiamondStorage storage ds;
-        assembly { ds.slot := position }
-        return ds.selectorToFacetAndPosition[0x52ef6b2c].facetAddress;        
-    }
-
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
@@ -85,7 +78,7 @@ contract Diamond {
         bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
         assembly { ds.slot := position }
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;  
-        require(facet != address(0));      
+        require(facet != address(0));              
         assembly {            
             calldatacopy(0, 0, calldatasize())
             let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)            
@@ -93,7 +86,7 @@ contract Diamond {
             switch result
             case 0 {revert(0, returndatasize())}
             default {return (0, returndatasize())}
-        }
+        }                
     }
 
     receive() external payable {}   
