@@ -76,6 +76,7 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         bytes32 oldSelectorSlot;
         bool updateLastSlot;
     }
+
     // diamondCut helper function
     // This code is almost the same as the internal diamondCut function, 
     // except it is using 'bytes[] calldata _diamondCut' instead of 
@@ -85,29 +86,19 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
     function externalCut(bytes[] calldata _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");
-        SlotInfo memory slot;        
-        slot.originalSelectorCount = ds.selectorCount;
-        // Get how many 32 byte slots are used
-        uint selectorSlotCount = slot.originalSelectorCount / 8;
-        // Get how many function selectors are in the last 32 byte slot
-        uint selectorsInSlot = slot.originalSelectorCount % 8;
-        if(selectorsInSlot > 0) {
-            slot.selectorSlot = ds.selectorSlots[selectorSlotCount];
-        }
+        
         // loop through diamond cut
         for(uint diamondCutIndex; diamondCutIndex < _diamondCut.length; diamondCutIndex++) {
             bytes memory facetCut = _diamondCut[diamondCutIndex];
-            require(facetCut.length > 20, "LibDiamond: Missing facet or selector info.");
-            bytes32 currentSlot;
-            assembly {
-                currentSlot := mload(add(facetCut,32))
-            }
-            bytes32 newFacet = bytes20(currentSlot);
             uint numSelectors = (facetCut.length - 20) / 4;
+            require(numSelectors > 0, "LibDiamond: Missing facet or selector info");
+            address newFacet;
+            assembly {
+                newFacet := mload(add(facetCut,32))
+            }                         
             uint position = 52;
-
             // adding or replacing functions
-            if(newFacet != 0) {                
+            if(newFacet != address(0)) {                
                 // add and replace selectors
                 for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
@@ -115,42 +106,29 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                         selector := mload(add(facetCut,position))
                     }
                     position += 4;
-                    bytes32 oldFacet = ds.facets[selector];
-                    // add
-                    if(oldFacet == 0) {
-                        // update the last slot at then end of the function
-                        slot.updateLastSlot = true;
-                        ds.facets[selector] = newFacet | bytes32(selectorsInSlot) << 64 | bytes32(selectorSlotCount);
-                        // clear selector position in slot and add selector
-                        slot.selectorSlot = slot.selectorSlot & ~(CLEAR_SELECTOR_MASK >> selectorsInSlot * 32) | bytes32(selector) >> selectorsInSlot * 32;
-                        selectorsInSlot++;
-                        // if slot is full then write it to storage
-                        if(selectorsInSlot == 8) {
-                            ds.selectorSlots[selectorSlotCount] = slot.selectorSlot;
-                            slot.selectorSlot = 0;
-                            selectorsInSlot = 0;
-                            selectorSlotCount++;
-                        }
+                    LibDiamondStorage.FacetAddressAndPosition memory oldFacet = ds.selectorToFacet[selector];
+                    // adding new function
+                    if(oldFacet.facetAddress == address(0)) {
+                        addSelector(newFacet, selector);
                     }
                     // replace
                     else {
-                        require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
+                        //require(bytes20(oldFacet) != bytes20(newFacet), "Function cut to same facet.");
                         // replace old facet address
-                        ds.facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
+                        //ds.facets[selector] = oldFacet & CLEAR_ADDRESS_MASK | newFacet;
                     }
                 }
             }
             // remove functions
-            else {
-                slot.updateLastSlot = true;
+            else {                
                 for(uint selectorIndex; selectorIndex < numSelectors; selectorIndex++) {
                     bytes4 selector;
                     assembly {
                         selector := mload(add(facetCut,position))
                     }
                     position += 4;
-                    bytes32 oldFacet = ds.facets[selector];
-                    require(oldFacet != 0, "Function doesn't exist. Can't remove.");
+                    
+/*
                     // Current slot is empty so get the slot before it
                     if(slot.selectorSlot == 0) {
                         selectorSlotCount--;
@@ -183,9 +161,11 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
                         ds.facets[lastSelector] = oldFacet & CLEAR_ADDRESS_MASK | bytes20(ds.facets[lastSelector]);
                     }
                     delete ds.facets[selector];
+                    */
                 }
             }
         }
+        /*
         slot.newSelectorCount = selectorSlotCount * 8 + selectorsInSlot;
         if(slot.newSelectorCount != slot.originalSelectorCount) {
             ds.selectorCount = slot.newSelectorCount;
@@ -193,6 +173,60 @@ contract DiamondFacet is IDiamondCut, IDiamondLoupe, IERC165 {
         if(slot.updateLastSlot && selectorsInSlot > 0) {
             ds.selectorSlots[selectorSlotCount] = slot.selectorSlot;
         }
+        */
+    }
+
+    function addSelector(address facetAddress, bytes4 selector) internal {
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
+        // see if facet already exists
+        uint facetPosition = ds.facetPosition[facetAddress];
+        // zero value means facet does not exist                        
+        if(facetPosition == 0) {
+            // add new facet            
+            ds.facets.push();
+            facetPosition = ds.facets.length;
+            ds.facetPosition[facetAddress] = facetPosition;
+            facetPosition--;
+            ds.facets[facetPosition].facetAddress = facetAddress;
+        }
+        else {
+            facetPosition--;
+        }
+        // add selector and facet to selectorToFacet variable
+        ds.selectorToFacet[selector].facetAddress = facetAddress;
+        ds.selectorToFacet[selector].facetPosition = uint16(facetPosition);
+        uint selectorPosition = ds.facets[facetPosition].functionSelectors.length;                        
+        ds.selectorToFacet[selector].selectorPosition = uint16(selectorPosition);
+        // add selector to facet
+        ds.facets[facetPosition].functionSelectors.push(selector);
+    }
+
+    function removeSelector(bytes4 selector) internal {
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
+        LibDiamondStorage.FacetAddressAndPosition memory facetAddressAndPosition = ds.selectorToFacet[selector];
+        require(facetAddressAndPosition.facetAddress != address(0), "Function doesn't exist. Can't remove.");
+        // delete the selector by replacing it with the last selector, then delete the last selector
+        // get last selector information
+        uint lastSelectorPosition = ds.facets[facetAddressAndPosition.facetPosition].functionSelectors.length;
+        bytes4 lastSelector = ds.facets[facetAddressAndPosition.facetPosition].functionSelectors[lastSelectorPosition];
+        if(lastSelector != selector) {
+            // replace selector with last selector
+            ds.facets[facetAddressAndPosition.facetPosition].functionSelectors[facetAddressAndPosition.selectorPosition] = lastSelector;
+            ds.selectorToFacet[lastSelector].selectorPosition = facetAddressAndPosition.selectorPosition;
+        }
+        // delete last selector     
+        ds.facets[facetAddressAndPosition.facetPosition].functionSelectors.pop();
+        delete ds.selectorToFacet[selector];
+
+        // if there are no more selectors in the facet then remove the facet
+        if(lastSelectorPosition == 1) {
+            uint lastFacetPosition = ds.facets.length;
+            
+
+        }
+
+
+
     }
 
     // Diamond Loupe Functions

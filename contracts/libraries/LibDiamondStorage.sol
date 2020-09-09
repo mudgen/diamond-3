@@ -5,24 +5,35 @@ library LibDiamondStorage {
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
+    struct Facet {
+        address facetAddress;
+        bytes4[] functionSelectors;
+    }
+
+    struct FacetAddressAndPosition {
+        address facetAddress;
+        uint16 facetPosition;
+        uint16 selectorPosition;
+    }  
+
     struct DiamondStorage {
 
         // owner of the contract
         address contractOwner;
 
-        // maps function selectors to the facets that execute the functions.
-        // and maps the selectors to the slot in the selectorSlots array.
-        // and maps the selectors to the position in the slot.
-        // func selector => address facet, uint32 slotIndex, uint64 slotsIndex
-        mapping(bytes4 => bytes32) facets;
+        // Holds the facet address and selectors for each facet in the diamond
+        Facet[] facets;
 
-        // array of slots of function selectors.
-        // each slot holds 8 function selectors.
-        mapping(uint => bytes32) selectorSlots;
+        // maps function selector to facet address and its position
+        // in the facets array
+        // function selector => facet address and position in facets array
+        mapping(bytes4 => FacetAddressAndPosition) selectorToFacet;
 
-        // The number of function selectors in selectorSlots
-        uint selectorCount;
-
+        // maps facetAddress to it position in the facets array
+        // Values are facetPosition+1, and 0 indicates facet address is not in facets array
+        // facetAddress => position in facets array
+        mapping(address => uint) facetPosition;
+        
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.
         mapping(bytes4 => bool) supportedInterfaces;
