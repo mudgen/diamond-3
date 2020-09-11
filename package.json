@@ -4,14 +4,20 @@
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
+    "prettier": "prettier --write contracts/**/*.sol",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "truffle": "^5.1.40"
+    "truffle": "^5.1.44"
   },
   "devDependencies": {
-    "standard": "^14.3.4"
+    "@codechecks/client": "^0.1.10",
+    "eth-gas-reporter": "^0.2.17",
+    "prettier": "^2.1.1",
+    "prettier-plugin-solidity": "^1.0.0-alpha.57",
+    "standard": "^14.3.4",
+    "typescript": "^4.0.2"
   }
 }

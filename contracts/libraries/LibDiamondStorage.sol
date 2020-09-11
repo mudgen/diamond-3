@@ -3,42 +3,38 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 library LibDiamondStorage {
-
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
     struct FacetAddressAndPosition {
-        address facetAddress;        
-        uint16 selectorPosition;  // position in facetSelectors.selectors array
+        address facetAddress;
+        uint16 functionSelectorPosition; // position in facetSelectors.selectors array
     }
 
-    struct FacetSelectors {
-        bytes4[] selectors;
+    struct FacetFunctionSelectors {
+        bytes4[] functionSelectors;
         uint16 facetAddressPosition;
     }
 
     struct DiamondStorage {
-
         // owner of the contract
-        address contractOwner;   
-
-        // maps function selector to the facet address and 
+        address contractOwner;
+        // maps function selector to the facet address and
         // the position of the facet address in the facetAddresses array
         // and the position of the selector in the facetSelectors.selectors array
         mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;
-
         // maps facet addresses to function selectors
-        mapping(address => FacetSelectors) facetSelectors;
-
+        mapping(address => FacetFunctionSelectors) facetFunctionSelectors;
         // facet addresses
         address[] facetAddresses;
-
         // Used to query if a contract implements an interface.
         // Used to implement ERC-165.
         mapping(bytes4 => bool) supportedInterfaces;
     }
 
-    function diamondStorage() internal pure returns(DiamondStorage storage ds) {
+    function diamondStorage() internal pure returns (DiamondStorage storage ds) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
-        assembly { ds.slot := position }
+        assembly {
+            ds.slot := position
+        }
     }
 }
