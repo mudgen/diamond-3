@@ -12,7 +12,7 @@ pragma experimental ABIEncoderV2;
 
 import { LibDiamondStorage } from "./LibDiamondStorage.sol";
 
-library LibDiamond {
+library LibDiamondCut {
     
     struct Facet {
         address facetAddress;
@@ -50,9 +50,10 @@ library LibDiamond {
                     }
                     // replace
                     else {
-                        require(oldFacet != newFacetAddress, "diamondCut: Function cut to same facet");
-                        removeSelector(selector);
-                        addSelector(newFacetAddress, selector);
+                        if(oldFacet != newFacetAddress) {
+                            removeSelector(selector);
+                            addSelector(newFacetAddress, selector);
+                        }
                     }
                 }
                 
@@ -81,7 +82,10 @@ library LibDiamond {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         // replace selector with last selector, then delete last selector
         address oldFacet = ds.selectorToFacetAndPosition[_selector].facetAddress;                    
-        require(oldFacet != address(0), "diamondCut: Function doesn't exist. Can't remove.");
+        // if function does not exist then do nothing and return            
+        if(oldFacet == address(0)) {
+            return;
+        }
         uint selectorPosition = ds.selectorToFacetAndPosition[_selector].functionSelectorPosition;
         uint lastSelectorPosition = ds.facetFunctionSelectors[oldFacet].functionSelectors.length - 1;
         bytes4 lastSelector = ds.facetFunctionSelectors[oldFacet].functionSelectors[lastSelectorPosition];

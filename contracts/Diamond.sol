@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "./libraries/LibDiamondStorage.sol";
-import "./libraries/LibDiamond.sol";
+import "./libraries/LibDiamondCut.sol";
 import "./facets/OwnershipFacet.sol";
 import "./facets/DiamondCutFacet.sol";
 import "./facets/DiamondLoupeFacet.sol";
@@ -29,7 +29,7 @@ contract Diamond {
         // Create a OwnershipFacet contract which implements the ERC-173 Ownership interface
         OwnershipFacet ownershipFacet = new OwnershipFacet();
 
-        LibDiamond.Facet[] memory diamondCut = new LibDiamond.Facet[](3);
+        LibDiamondCut.Facet[] memory diamondCut = new LibDiamondCut.Facet[](3);
 
         // adding diamondCut function
         diamondCut[0].facetAddress = address(diamondCutFacet);
@@ -52,7 +52,7 @@ contract Diamond {
         diamondCut[2].functionSelectors[1] = OwnershipFacet.owner.selector;
 
         // execute non-standard internal diamondCut function to add functions
-        LibDiamond.diamondCut(diamondCut);
+        LibDiamondCut.diamondCut(diamondCut);
 
         // adding ERC165 data
         // ERC165
