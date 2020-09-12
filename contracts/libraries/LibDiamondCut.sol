@@ -10,16 +10,11 @@ pragma experimental ABIEncoderV2;
 * This code is as complex as it is to reduce gas costs.
 /******************************************************************************/
 
-import { LibDiamondStorage } from "./LibDiamondStorage.sol";
+import "./LibDiamondStorage.sol";
+import "../interfaces/IDiamondCut.sol";
 
-library LibDiamondCut {
-    
-    struct Facet {
-        address facetAddress;
-        bytes4[] functionSelectors;
-    }
-    
-    event DiamondCut(Facet[] _diamondCut, address _init, bytes _calldata);  
+library LibDiamondCut {    
+    event DiamondCut(IDiamondCut.Facet[] _diamondCut, address _init, bytes _calldata);  
 
     // Non-standard internal function version of diamondCut
     // This code is almost the same as externalCut, except it is using
@@ -27,7 +22,7 @@ library LibDiamondCut {
     // and it DOES issue the DiamondCut event
     // The code is duplicated to prevent copying calldata to memory which
     // causes a Solidity error for a two dimensional array.    
-    function diamondCut(Facet[] memory _diamondCut) internal {
+    function diamondCut(IDiamondCut.Facet[] memory _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();      
         for(uint facetIndex; facetIndex < _diamondCut.length; facetIndex++) {                        
             address newFacetAddress = _diamondCut[facetIndex].facetAddress;
@@ -80,8 +75,8 @@ library LibDiamondCut {
     
     function removeSelector(bytes4 _selector) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();        
-        address oldFacet = ds.selectorToFacetAndPosition[_selector].facetAddress;                    
-        // if function does not exist then do nothing and return            
+        address oldFacet = ds.selectorToFacetAndPosition[_selector].facetAddress;
+        // if function does not exist then do nothing and return
         if(oldFacet == address(0)) {
             return;
         }

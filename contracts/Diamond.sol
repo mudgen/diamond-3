@@ -29,7 +29,7 @@ contract Diamond {
         // Create a OwnershipFacet contract which implements the ERC-173 Ownership interface
         OwnershipFacet ownershipFacet = new OwnershipFacet();
 
-        LibDiamondCut.Facet[] memory diamondCut = new LibDiamondCut.Facet[](3);
+        IDiamondCut.Facet[] memory diamondCut = new IDiamondCut.Facet[](3);
 
         // adding diamondCut function
         diamondCut[0].facetAddress = address(diamondCutFacet);

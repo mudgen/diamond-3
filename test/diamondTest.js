@@ -25,6 +25,14 @@ function removeItem (array, item) {
   return array
 }
 
+function findPositionInFacets (facetAddress, facets) {
+  for (let i = 0; i < facets.length; i++) {
+    if (facets[i].facetAddress === facetAddress) {
+      return i
+    }
+  }
+}
+
 contract('DiamondTest', async (accounts) => {
   let diamondCutFacet
   let diamondLoupeFacet
@@ -179,16 +187,19 @@ contract('DiamondTest', async (accounts) => {
       .diamondCut(diamondCut, zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 7000000 })
     const facets = await diamondLoupeFacet.methods.facets().call()
+    const facetAddresses = await diamondLoupeFacet.methods.facetAddresses().call()
+    assert.equal(facetAddresses.length, 5)
     assert.equal(facets.length, 5)
-    assert.equal(facets[0][0], addresses[0])
-    assert.equal(facets[1][0], addresses[1])
-    assert.equal(facets[2][0], addresses[2])
-    assert.equal(facets[3][0], addresses[3])
-    assert.equal(facets[4][0], addresses[4])
-    assert.sameMembers(facets[0][1], getSelectors(DiamondCutFacet))
-    assert.sameMembers(facets[1][1], removeItem(getSelectors(DiamondLoupeFacet), '0x01ffc9a7'))
-    assert.sameMembers(facets[2][1], getSelectors(OwnershipFacet))
-    assert.sameMembers(facets[3][1], getSelectors(test1Facet))
-    assert.sameMembers(facets[4][1], getSelectors(test2Facet))
+    assert.sameMembers(facetAddresses, addresses)
+    assert.equal(facets[0][0], facetAddresses[0], 'first facet')
+    assert.equal(facets[1][0], facetAddresses[1], 'second facet')
+    assert.equal(facets[2][0], facetAddresses[2], 'third facet')
+    assert.equal(facets[3][0], facetAddresses[3], 'fourth facet')
+    assert.equal(facets[4][0], facetAddresses[4], 'fifth facet')
+    assert.sameMembers(facets[findPositionInFacets(addresses[0], facets)][1], getSelectors(DiamondCutFacet))
+    assert.sameMembers(facets[findPositionInFacets(addresses[1], facets)][1], removeItem(getSelectors(DiamondLoupeFacet), '0x01ffc9a7'))
+    assert.sameMembers(facets[findPositionInFacets(addresses[2], facets)][1], getSelectors(OwnershipFacet))
+    assert.sameMembers(facets[findPositionInFacets(addresses[3], facets)][1], getSelectors(test1Facet))
+    assert.sameMembers(facets[findPositionInFacets(addresses[4], facets)][1], getSelectors(test2Facet))
   })
 })
