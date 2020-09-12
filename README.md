@@ -1,17 +1,18 @@
-# Diamond Standard Reference Implementation
-This is the gas-optimized reference implementation for [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535).
+# Diamond Standard Simple Diamond Reference Implementation
 
-Specifically this is a gas efficient implementation of the `diamondCut` function. It uses the least amount of gas to add/replace/remove functions.
+This is a simple reference implementation for [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535).
 
-The loupe functions are NOT gas optimized. In this implementation the `facets`, `facetFunctionSelectors`, `facetAddresses` loupe functions are not meant to be called on-chain and may use too much gas or run out of gas when called in on-chain transactions.  In this implementation these functions should be called by off-chain software like websites and Javascript libraries etc., where gas costs do not matter.
+The diamond implementation with a gas-optimized `diamondCut` function for adding/replacing/removing functions has been moved here: https://github.com/mudgen/gas-optimized-diamond-1
 
-The `facetAddress` loupe function is gas efficient and can be called in on-chain transactions.
- 
-The `diamondCut` implementation avoids storage read and writes. Fits 8 function selectors in a single storage slot. This is a gas optimization. 
+This simple implementation has been written to be easy to read and easy to understand.
 
-The `contracts/Diamond.sol` file shows an example of implementing a diamond. 
+In this simple implementation the four standard loupe functions are gas optimized and can be called in on-chain transactions.
 
-The `contracts/facets/DiamondFacet.sol` file includes the standard `diamondCut` function and the loupe functions.
+The `contracts/Diamond.sol` file shows an example of implementing a diamond.
+
+The `contracts/facets/DiamondCutFacet.sol` file shows how to implement the `diamondCut` external function.
+
+The `contracts/facets/DiamondLoupeFacet.sol` file shows how to implement the four standard loupe functions.
 
 The `contracts/libraries/LibDiamondStorage.sol` file shows how to implement Diamond Storage.
 
@@ -31,7 +32,7 @@ The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamon
 
 The [LibDiamondStorage.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. It includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
 
-The [LibDiamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamond.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
+The [LibDiamondCut.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamond.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
 
 ## Calling Diamond Functions
 
@@ -40,11 +41,9 @@ In order to call a function that exists in a diamond you need to use the ABI inf
 Here is an example that uses web3.js:
 
 ```javascript
-let myUsefulFacet = new web3.eth.Contract(
-  MyUsefulFacet.abi, 
-  diamondAddress
-)
+let myUsefulFacet = new web3.eth.Contract(MyUsefulFacet.abi, diamondAddress);
 ```
+
 In the code above we create a contract variable so we can call contract functions with it.
 
 In this example we know we will use a diamond because we pass a diamond's address as the second argument. But we are using an ABI from the MyUsefulFacet facet so we can call functions that are defined in that facet. MyUsefulFacet's functions must have been added to the diamond (using diamondCut) in order for the diamond to use the function information provided by the ABI of course.
@@ -53,7 +52,7 @@ Similarly you need to use the ABI of a facet in Solidity code in order to call f
 
 ```solidity
 string result = MyUsefulFacet(diamondAddress).getResult()
-``` 
+```
 
 ## Get Help and Join the Community
 
@@ -68,14 +67,14 @@ If you need help or would like to discuss diamonds then send me a message [on tw
 5. [Upgradeable smart contracts using the Diamond Standard](https://hiddentao.com/archives/2020/05/28/upgradeable-smart-contracts-using-diamond-standard)
 6. [buidler-deploy supports diamonds](https://github.com/wighawag/buidler-deploy/)
 
-
 ## Author
+
 The diamond standard and reference implementation were written by Nick Mudge.
 
 Contact:
 
-* https://twitter.com/mudgen
-* nick@perfectabstractions.com
+- https://twitter.com/mudgen
+- nick@perfectabstractions.com
 
 ## License
 
