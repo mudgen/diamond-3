@@ -26,7 +26,7 @@ library LibDiamondCut {
     // 'bytes[] memory _diamondCut' instead of 'bytes[] calldata _diamondCut'
     // and it DOES issue the DiamondCut event
     // The code is duplicated to prevent copying calldata to memory which
-    // causes an error for an array of bytes arrays.    
+    // causes an error for a two dimensional array.    
     function diamondCut(Facet[] memory _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();      
         for(uint facetIndex; facetIndex < _diamondCut.length; facetIndex++) {                        
@@ -79,20 +79,22 @@ library LibDiamondCut {
 
     
     function removeSelector(bytes4 _selector) internal {
-        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        // replace selector with last selector, then delete last selector
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();        
         address oldFacet = ds.selectorToFacetAndPosition[_selector].facetAddress;                    
         // if function does not exist then do nothing and return            
         if(oldFacet == address(0)) {
             return;
         }
+        // replace selector with last selector, then delete last selector
         uint selectorPosition = ds.selectorToFacetAndPosition[_selector].functionSelectorPosition;
         uint lastSelectorPosition = ds.facetFunctionSelectors[oldFacet].functionSelectors.length - 1;
         bytes4 lastSelector = ds.facetFunctionSelectors[oldFacet].functionSelectors[lastSelectorPosition];
+        // if not the same then replace _selector with lastSelector
         if(lastSelector != _selector) {
             ds.facetFunctionSelectors[oldFacet].functionSelectors[selectorPosition] = lastSelector;
             ds.selectorToFacetAndPosition[lastSelector].functionSelectorPosition = uint16(selectorPosition);
         }
+        // delete the last selector
         ds.facetFunctionSelectors[oldFacet].functionSelectors.pop();
         delete ds.selectorToFacetAndPosition[_selector];
 

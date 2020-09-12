@@ -42,7 +42,10 @@ contract('DiamondTest', async (accounts) => {
     diamond = await Diamond.deployed()
     diamondCutFacet = new web3.eth.Contract(DiamondCutFacet.abi, diamond.address)
     diamondLoupeFacet = new web3.eth.Contract(DiamondLoupeFacet.abi, diamond.address)
-    ownershipFacet = new web3.eth.Contract(OwnershipFacet.abi, diamond.address)
+    // unfortunately this is done for the side affect of making selectors available in the ABI of
+    // OwnershipFacet
+    // eslint-disable-next-line no-unused-vars
+    const ownershipFacet = new web3.eth.Contract(OwnershipFacet.abi, diamond.address)
     web3.eth.defaultAccount = accounts[0]
   })
 
