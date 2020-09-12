@@ -5,3 +5,4 @@ coverage
 stuff.txt
 deployment/deploy.js
 .vscode
+bin

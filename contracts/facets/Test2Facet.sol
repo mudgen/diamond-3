@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.1;
+pragma experimental ABIEncoderV2;
 
 contract Test2Facet {
     function test2Func1() external {}

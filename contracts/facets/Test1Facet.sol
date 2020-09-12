@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.1;
+pragma experimental ABIEncoderV2;
 
 contract Test1Facet {
     event TestEvent(address something);
@@ -44,9 +45,5 @@ contract Test1Facet {
 
     function test1Func20() external {}
 
-    function supportsInterface(bytes4 _interfaceID)
-        external
-        view
-        returns (bool)
-    {}
+    function supportsInterface(bytes4 _interfaceID) external view returns (bool) {}
 }

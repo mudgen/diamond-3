@@ -3,6 +3,11 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 interface IDiamondCut {
+    struct Facet {
+        address facetAddress;
+        bytes4[] functionSelectors;
+    }
+
     /// @notice Add/replace/remove any number of functions and optionally execute
     ///         a function with delegatecall
     /// @param _diamondCut Contains the facet addresses and function selectors
@@ -20,10 +25,10 @@ interface IDiamondCut {
     /// @param _calldata A function call, including function selector and arguments
     ///                  _calldata is executed with delegatecall on _init
     function diamondCut(
-        bytes[] calldata _diamondCut,
+        Facet[] calldata _diamondCut,
         address _init,
         bytes calldata _calldata
     ) external;
 
-    event DiamondCut(bytes[] _diamondCut, address _init, bytes _calldata);
+    event DiamondCut(Facet[] _diamondCut, address _init, bytes _calldata);
 }
