@@ -63,7 +63,7 @@ contract DiamondCutFacet is IDiamondCut {
     // except it is using 'Facets[] calldata _diamondCut' instead of 
     // 'Facet[] memory _diamondCut', and it does not issue the DiamondCut event.
     // The code is duplicated to prevent copying calldata to memory which
-    // causes an error for two dimensional arrays.
+    // causes a Solidity error for two dimensional arrays.
     function externalCut(Facet[] calldata _diamondCut) internal {
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         require(msg.sender == ds.contractOwner, "Must own the contract.");        

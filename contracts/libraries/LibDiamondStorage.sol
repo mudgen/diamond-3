@@ -7,12 +7,12 @@ library LibDiamondStorage {
 
     struct FacetAddressAndPosition {
         address facetAddress;
-        uint16 functionSelectorPosition; // position in facetSelectors.selectors array
+        uint16 functionSelectorPosition; // position in facetFunctionSelectors.functionSelectors array
     }
 
     struct FacetFunctionSelectors {
         bytes4[] functionSelectors;
-        uint16 facetAddressPosition;
+        uint16 facetAddressPosition; // position of facetAddress in facetAddresses array
     }
 
     struct DiamondStorage {
