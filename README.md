@@ -26,7 +26,7 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 The reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. It is tested and it works. Use it. Also, using the reference implementation makes your diamond compliant with the standard.
 
-Specifically you should copy and use the [DiamondFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondFacet.sol) contract as is. It implement the `diamondCut` function and the loupe functions.
+Specifically you should copy and use the [DiamondCutFacet.sol](https://github.com/mudgen/diamond/blob/master/contracts/facets/DiamondCutFacet.sol) and [DiamondLoupeFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondLoupeFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
 
 The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. This contract is the diamond. Its deployment creates a diamond. It's address is a stable diamond address that does not change.
 
@@ -60,12 +60,13 @@ If you need help or would like to discuss diamonds then send me a message [on tw
 
 ## Useful Links
 
+1. [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535)
 1. [Understanding Diamonds on Ethereum](https://dev.to/mudgen/understanding-diamonds-on-ethereum-1fb)
-2. [Solidity Storage Layout For Proxy Contracts and Diamonds](https://medium.com/1milliondevs/solidity-storage-layout-for-proxy-contracts-and-diamonds-c4f009b6903)
-3. [New Storage Layout For Proxy Contracts and Diamonds](https://medium.com/1milliondevs/new-storage-layout-for-proxy-contracts-and-diamonds-98d01d0eadb)
-4. [Diamond Setter](https://github.com/lampshade9909/DiamondSetter)
-5. [Upgradeable smart contracts using the Diamond Standard](https://hiddentao.com/archives/2020/05/28/upgradeable-smart-contracts-using-diamond-standard)
-6. [buidler-deploy supports diamonds](https://github.com/wighawag/buidler-deploy/)
+1. [Solidity Storage Layout For Proxy Contracts and Diamonds](https://medium.com/1milliondevs/solidity-storage-layout-for-proxy-contracts-and-diamonds-c4f009b6903)
+1. [New Storage Layout For Proxy Contracts and Diamonds](https://medium.com/1milliondevs/new-storage-layout-for-proxy-contracts-and-diamonds-98d01d0eadb)
+1. [Diamond Setter](https://github.com/lampshade9909/DiamondSetter)
+1. [Upgradeable smart contracts using the Diamond Standard](https://hiddentao.com/archives/2020/05/28/upgradeable-smart-contracts-using-diamond-standard)
+1. [buidler-deploy supports diamonds](https://github.com/wighawag/buidler-deploy/)
 
 ## Author
 
