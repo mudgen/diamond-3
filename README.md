@@ -6,7 +6,7 @@ The diamond implementation with a gas-optimized `diamondCut` function for adding
 
 This simple implementation has been written to be easy to read and easy to understand.
 
-In this simple implementation the four standard loupe functions are gas optimized and can be called in on-chain transactions.
+Even though this implementation was written to be simple and easy to understand it turns out that, that results in the four standard loupe functions are gas optimized and can be called in on-chain transactions.
 
 The `contracts/Diamond.sol` file shows an example of implementing a diamond.
 

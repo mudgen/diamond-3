@@ -3,11 +3,9 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
-* Author: Nick Mudge
+* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
 *
-* Implementation of Diamond facet.
-* This is gas optimized by reducing storage reads and storage writes.
-* This code is as complex as it is to reduce gas costs.
+* Implementation of internal diamondCut function.
 /******************************************************************************/
 
 import "./LibDiamondStorage.sol";

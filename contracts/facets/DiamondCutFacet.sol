@@ -3,9 +3,9 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
-* Author: Nick Mudge
+* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
 *
-* Implementation of DiamondLoupe interface.
+* Implementation of diamondCut external function.
 /******************************************************************************/
 
 import "../libraries/LibDiamondStorage.sol";
@@ -20,7 +20,7 @@ contract DiamondCutFacet is IDiamondCut {
     /// @param _init The address of the contract or facet to execute _calldata
     /// @param _calldata A function call, including function selector and arguments
     ///                  _calldata is executed with delegatecall on _init
-    function diamondCut(Facet[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {        
+    function diamondCut(Facet[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {
         externalCut(_diamondCut);        
         emit DiamondCut(_diamondCut, _init, _calldata);
         if(_calldata.length > 0) {
@@ -33,7 +33,7 @@ contract DiamondCutFacet is IDiamondCut {
             if(!success) {
                 if(error.length > 0) {
                     // bubble up the error
-                    revert(string(error));                    
+                    revert(string(error));
                 }
                 else {
                     revert("DiamondFacet: _init function reverted");
