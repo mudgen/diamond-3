@@ -95,5 +95,6 @@ contract Diamond {
                 }
         }
     }
+
     receive() external payable {}
 }
