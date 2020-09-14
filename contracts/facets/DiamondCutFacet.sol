@@ -62,7 +62,7 @@ contract DiamondCutFacet is IDiamondCut {
                 uint256 facetAddressPosition = ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition;
                 // add new facet address if it does not exist
                 if (facetAddressPosition == 0 && ds.facetFunctionSelectors[newFacetAddress].functionSelectors.length == 0) {
-                    LibDiamondCut.hasContractCode(newFacetAddress, "LibDiamondCut: New facet has no code");
+                    LibDiamondCut.hasContractCode(newFacetAddress, "DiamondCutFacet: New facet has no code");
                     facetAddressPosition = ds.facetAddresses.length;
                     ds.facetAddresses.push(newFacetAddress);
                     ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
