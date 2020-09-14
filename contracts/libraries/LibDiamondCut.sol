@@ -29,6 +29,7 @@ library LibDiamondCut {
                 uint256 facetAddressPosition = ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition;
                 // add new facet address if it does not exist
                 if (facetAddressPosition == 0 && ds.facetFunctionSelectors[newFacetAddress].functionSelectors.length == 0) {
+                    hasContractCode(newFacetAddress, "LibDiamondCut: New facet has no code");
                     facetAddressPosition = ds.facetAddresses.length;
                     ds.facetAddresses.push(newFacetAddress);
                     ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
@@ -99,5 +100,13 @@ library LibDiamondCut {
             ds.facetAddresses.pop();
             delete ds.facetFunctionSelectors[oldFacet];
         }
+    }
+
+    function hasContractCode(address _contract, string memory _errorMessage) internal view {
+        uint256 contractSize;
+        assembly {
+            contractSize := extcodesize(_contract)
+        }
+        require(contractSize > 0, _errorMessage);
     }
 }

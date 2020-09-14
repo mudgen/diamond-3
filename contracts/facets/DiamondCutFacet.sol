@@ -28,14 +28,12 @@ contract DiamondCutFacet is IDiamondCut {
         externalCut(_diamondCut);
         emit DiamondCut(_diamondCut, _init, _calldata);
         if (_calldata.length > 0) {
-            address init = _init == address(0) ? address(this) : _init;
-            // Check that init has contract code
-            uint256 contractSize;
-            assembly {
-                contractSize := extcodesize(init)
+            if (_init != address(0)) {
+                LibDiamondCut.hasContractCode(_init, "DiamondFacet: _init address has no code");
+            } else {
+                _init = address(this);
             }
-            require(contractSize > 0, "DiamondFacet: _init address has no code");
-            (bool success, bytes memory error) = init.delegatecall(_calldata);
+            (bool success, bytes memory error) = _init.delegatecall(_calldata);
             if (!success) {
                 if (error.length > 0) {
                     // bubble up the error
@@ -68,6 +66,7 @@ contract DiamondCutFacet is IDiamondCut {
                 uint256 facetAddressPosition = ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition;
                 // add new facet address if it does not exist
                 if (facetAddressPosition == 0 && ds.facetFunctionSelectors[newFacetAddress].functionSelectors.length == 0) {
+                    LibDiamondCut.hasContractCode(newFacetAddress, "LibDiamondCut: New facet has no code");
                     facetAddressPosition = ds.facetAddresses.length;
                     ds.facetAddresses.push(newFacetAddress);
                     ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
