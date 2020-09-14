@@ -27,11 +27,12 @@ contract DiamondCutFacet is IDiamondCut {
     ) external override {
         externalCut(_diamondCut);
         emit DiamondCut(_diamondCut, _init, _calldata);
-        if (_calldata.length > 0) {
-            if (_init != address(0)) {
-                LibDiamondCut.hasContractCode(_init, "DiamondFacet: _init address has no code");
-            } else {
-                _init = address(this);
+        if (_init == address(0)) {
+            require(_calldata.length == 0, "DiamondCutFacet: _init is address(0) but_calldata is not empty");
+        } else {
+            require(_calldata.length > 0, "DiamondCutFacet: _calldata is empty but _init is not address(0)");
+            if (_init != address(this)) {
+                LibDiamondCut.hasContractCode(_init, "DiamondCutFacet: _init address has no code");
             }
             (bool success, bytes memory error) = _init.delegatecall(_calldata);
             if (!success) {
@@ -39,15 +40,10 @@ contract DiamondCutFacet is IDiamondCut {
                     // bubble up the error
                     revert(string(error));
                 } else {
-                    revert("DiamondFacet: _init function reverted");
+                    revert("DiamondCutFacet: _init function reverted");
                 }
             }
-        } else if (_init != address(0)) {
-            // If _init is not address(0) but calldata is empty
-            revert("DiamondFacet: _calldata is empty");
         }
-        // if _calldata is empty and _init is address(0)
-        // then skip any initialization
     }
 
     // diamondCut helper function
