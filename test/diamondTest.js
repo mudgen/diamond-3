@@ -151,7 +151,7 @@ contract('DiamondTest', async (accounts) => {
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     result = await diamondCutFacet.methods
       .diamondCut([[zeroAddress, removeSelectors]], zeroAddress, '0x')
-      .send({ from: web3.eth.defaultAccount, gas: 7000000 })
+      .send({ from: web3.eth.defaultAccount, gas: 6000000 })
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     selectors = [].concat(selectors.slice(0, 1), selectors.slice(2, 8), selectors.slice(10))
     assert.sameMembers(result, selectors)
@@ -168,7 +168,7 @@ contract('DiamondTest', async (accounts) => {
 
     result = await diamondCutFacet.methods
       .diamondCut([[zeroAddress, removeSelectors]], zeroAddress, '0x')
-      .send({ from: web3.eth.defaultAccount, gas: 7000000 })
+      .send({ from: web3.eth.defaultAccount, gas: 6000000 })
     facets = await diamondLoupeFacet.methods.facets().call()
     assert.equal(facets.length, 2)
     assert.equal(facets[0][0], addresses[0])
@@ -185,7 +185,7 @@ contract('DiamondTest', async (accounts) => {
     diamondCut.push([addresses[4], getSelectors(test2Facet)])
     result = await diamondCutFacet.methods
       .diamondCut(diamondCut, zeroAddress, '0x')
-      .send({ from: web3.eth.defaultAccount, gas: 7000000 })
+      .send({ from: web3.eth.defaultAccount, gas: 6000000 })
     const facets = await diamondLoupeFacet.methods.facets().call()
     const facetAddresses = await diamondLoupeFacet.methods.facetAddresses().call()
     assert.equal(facetAddresses.length, 5)
