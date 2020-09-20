@@ -1,12 +1,8 @@
-# Diamond Standard Simple Diamond Reference Implementation
+# Diamond Standard Reference Implementation
 
-This is a simple reference implementation for [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535).
+This is a simple reference implementation for [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535). To learn about other reference implementations go here: https://github.com/mudgen/diamond
 
-The diamond implementation with a gas-optimized `diamondCut` function for adding/replacing/removing functions has been moved here: https://github.com/mudgen/gas-optimized-diamond-1
-
-This simple implementation has been written to be easy to read and easy to understand.
-
-Even though this implementation was written to be simple and easy to understand it turns out that, that results in the four standard loupe functions are gas optimized and can be called in on-chain transactions.
+The standard loupe functions have been gas-optimized in this implementation and can be called in on-chain transactions. However keep in mind that a diamond can have any number of functions and facets so it is still possible to get out-of-gas errors when calling loupe functions. Except for the `facetAddress` loupe function which has a fixed gas cost.
 
 The `contracts/Diamond.sol` file shows an example of implementing a diamond.
 
@@ -22,17 +18,17 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 1. The most important thing is reading and understanding [EIP-2535 Diamond Standard](https://github.com/ethereum/EIPs/issues/2535). If something is unclear let me know!
 
-2. The second important thing is using the Diamond Standard reference implementation. You are at the right place because this is the README for the reference implementation.
+2. The second important thing is using an EIP-2535 Diamond Standard reference implementation. You are at the right place because this is the README for a reference implementation.
 
-The reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. It is tested and it works. Use it. Also, using the reference implementation makes your diamond compliant with the standard.
+A diamond reference implementation is more than a reference implementation. It is the boilerplate code you need for a diamond. Also, using a reference implementation ensures your diamond is compliant with EIP-2535 Diamond Standard.
 
-Specifically you should copy and use the [DiamondCutFacet.sol](https://github.com/mudgen/diamond/blob/master/contracts/facets/DiamondCutFacet.sol) and [DiamondLoupeFacet.sol](https://github.com/mudgen/Diamond/blob/master/contracts/facets/DiamondLoupeFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
+Specifically you can copy and use the [DiamondCutFacet.sol](./contracts/facets/DiamondCutFacet.sol) and [DiamondLoupeFacet.sol](./contracts/facets/DiamondLoupeFacet.sol) contracts as is. They implement the `diamondCut` function and the loupe functions.
 
-The [Diamond.sol](https://github.com/mudgen/Diamond/blob/master/contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. This contract is the diamond. Its deployment creates a diamond. It's address is a stable diamond address that does not change.
+The [Diamond.sol](./contracts/Diamond.sol) contract could be used as is, or it could be used as a starting point and customized. This contract is the diamond. Its deployment creates a diamond. It's address is a stable diamond address that does not change.
 
-The [LibDiamondStorage.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. It includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
+The [LibDiamondStorage.sol](./contracts/libraries/LibDiamondStorage.sol) library could be used as is. It shows how to implement Diamond Storage. This contract includes contract ownership which you might want to change if you want to implement DAO-based ownership or other form of contract ownership. Go for it. Diamonds can work with any kind of contract ownership strategy.
 
-The [LibDiamondCut.sol](https://github.com/mudgen/Diamond/blob/master/contracts/libraries/LibDiamond.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
+The [LibDiamondCut.sol](./contracts/libraries/LibDiamondCut.sol) library contains an internal function version of `diamondCut` that can be used in the constructor of a diamond or other places.
 
 ## Calling Diamond Functions
 
