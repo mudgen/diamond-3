@@ -74,6 +74,7 @@ library LibDiamondCut {
         if (oldFacet == address(0)) {
             return;
         }
+        require(oldFacet != address(this), "LibDiamondCut: Can't remove or replace immutable function");
         // replace selector with last selector, then delete last selector
         uint256 selectorPosition = ds.selectorToFacetAndPosition[_selector].functionSelectorPosition;
         uint256 lastSelectorPosition = ds.facetFunctionSelectors[oldFacet].functionSelectors.length - 1;
