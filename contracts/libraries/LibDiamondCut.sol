@@ -15,48 +15,51 @@ library LibDiamondCut {
     event DiamondCut(IDiamondCut.Facet[] _diamondCut, address _init, bytes _calldata);
 
     // Non-standard internal function version of diamondCut
-    // This code is almost the same as externalCut, except it is using
-    // 'Facet[] memory _diamondCut' instead of 'Facet[] calldata _diamondCut'
-    // and it DOES issue the DiamondCut event
+    // This code is almost the same as the external diamondCut,
+    // except it is using 'Facet[] memory _diamondCut' instead of
+    // 'Facet[] calldata _diamondCut'.
     // The code is duplicated to prevent copying calldata to memory which
-    // causes a Solidity error for a two dimensional array.
+    // causes an error for a two dimensional array.
     function diamondCut(IDiamondCut.Facet[] memory _diamondCut) internal {
-        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
-            address newFacetAddress = _diamondCut[facetIndex].facetAddress;
-            // add or replace function
-            if (newFacetAddress != address(0)) {
-                uint256 facetAddressPosition = ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition;
-                // add new facet address if it does not exist
-                if (facetAddressPosition == 0 && ds.facetFunctionSelectors[newFacetAddress].functionSelectors.length == 0) {
-                    hasContractCode(newFacetAddress, "LibDiamondCut: New facet has no code");
-                    facetAddressPosition = ds.facetAddresses.length;
-                    ds.facetAddresses.push(newFacetAddress);
-                    ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
-                }
-                // add or replace selectors
-                for (uint256 selectorIndex; selectorIndex < _diamondCut[facetIndex].functionSelectors.length; selectorIndex++) {
-                    bytes4 selector = _diamondCut[facetIndex].functionSelectors[selectorIndex];
-                    address oldFacet = ds.selectorToFacetAndPosition[selector].facetAddress;
-                    // add
-                    if (oldFacet == address(0)) {
-                        addSelector(newFacetAddress, selector);
-                    } else {
-                        // replace
-                        if (oldFacet != newFacetAddress) {
-                            removeSelector(selector);
-                            addSelector(newFacetAddress, selector);
-                        }
-                    }
-                }
-            } else {
-                // remove selectors
-                for (uint256 selectorIndex; selectorIndex < _diamondCut[facetIndex].functionSelectors.length; selectorIndex++) {
-                    removeSelector(_diamondCut[facetIndex].functionSelectors[selectorIndex]);
-                }
-            }
+            addReplaceRemoveFacetSelectors(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
         }
         emit DiamondCut(_diamondCut, address(0), new bytes(0));
+    }
+
+    function addReplaceRemoveFacetSelectors(address _newFacetAddress, bytes4[] memory _selectors) internal {
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
+        // add or replace function
+        if (_newFacetAddress != address(0)) {
+            uint256 facetAddressPosition = ds.facetFunctionSelectors[_newFacetAddress].facetAddressPosition;
+            // add new facet address if it does not exist
+            if (facetAddressPosition == 0 && ds.facetFunctionSelectors[_newFacetAddress].functionSelectors.length == 0) {
+                hasContractCode(_newFacetAddress, "LibDiamondCut: New facet has no code");
+                facetAddressPosition = ds.facetAddresses.length;
+                ds.facetAddresses.push(_newFacetAddress);
+                ds.facetFunctionSelectors[_newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
+            }
+            // add or replace selectors
+            for (uint256 selectorIndex; selectorIndex < _selectors.length; selectorIndex++) {
+                bytes4 selector = _selectors[selectorIndex];
+                address oldFacet = ds.selectorToFacetAndPosition[selector].facetAddress;
+                // add
+                if (oldFacet == address(0)) {
+                    addSelector(_newFacetAddress, selector);
+                } else {
+                    // replace
+                    if (oldFacet != _newFacetAddress) {
+                        removeSelector(selector);
+                        addSelector(_newFacetAddress, selector);
+                    }
+                }
+            }
+        } else {
+            // remove selectors
+            for (uint256 selectorIndex; selectorIndex < _selectors.length; selectorIndex++) {
+                removeSelector(_selectors[selectorIndex]);
+            }
+        }
     }
 
     function addSelector(address _newFacet, bytes4 _selector) internal {

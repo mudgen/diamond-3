@@ -25,7 +25,9 @@ contract DiamondCutFacet is IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external override {
-        externalCut(_diamondCut);
+        for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
+            LibDiamondCut.addReplaceRemoveFacetSelectors(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
+        }
         emit DiamondCut(_diamondCut, _init, _calldata);
         if (_init == address(0)) {
             require(_calldata.length == 0, "DiamondCutFacet: _init is address(0) but_calldata is not empty");
@@ -41,51 +43,6 @@ contract DiamondCutFacet is IDiamondCut {
                     revert(string(error));
                 } else {
                     revert("DiamondCutFacet: _init function reverted");
-                }
-            }
-        }
-    }
-
-    // diamondCut helper function
-    // This code is almost the same as the internal diamondCut function,
-    // except it is using 'Facets[] calldata _diamondCut' instead of
-    // 'Facet[] memory _diamondCut', and it does not issue the DiamondCut event.
-    // The code is duplicated to prevent copying calldata to memory which
-    // causes a Solidity error for two dimensional arrays.
-    function externalCut(Facet[] calldata _diamondCut) internal {
-        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        require(msg.sender == ds.contractOwner, "Must own the contract.");
-        for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
-            address newFacetAddress = _diamondCut[facetIndex].facetAddress;
-            // add or replace function
-            if (newFacetAddress != address(0)) {
-                uint256 facetAddressPosition = ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition;
-                // add new facet address if it does not exist
-                if (facetAddressPosition == 0 && ds.facetFunctionSelectors[newFacetAddress].functionSelectors.length == 0) {
-                    LibDiamondCut.hasContractCode(newFacetAddress, "DiamondCutFacet: New facet has no code");
-                    facetAddressPosition = ds.facetAddresses.length;
-                    ds.facetAddresses.push(newFacetAddress);
-                    ds.facetFunctionSelectors[newFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
-                }
-                // add or replace selectors
-                for (uint256 selectorIndex; selectorIndex < _diamondCut[facetIndex].functionSelectors.length; selectorIndex++) {
-                    bytes4 selector = _diamondCut[facetIndex].functionSelectors[selectorIndex];
-                    address oldFacet = ds.selectorToFacetAndPosition[selector].facetAddress;
-                    // add
-                    if (oldFacet == address(0)) {
-                        LibDiamondCut.addSelector(newFacetAddress, selector);
-                    } else {
-                        // replace
-                        if (oldFacet != newFacetAddress) {
-                            LibDiamondCut.removeSelector(selector);
-                            LibDiamondCut.addSelector(newFacetAddress, selector);
-                        }
-                    }
-                }
-            } else {
-                // remove selectors
-                for (uint256 selectorIndex; selectorIndex < _diamondCut[facetIndex].functionSelectors.length; selectorIndex++) {
-                    LibDiamondCut.removeSelector(_diamondCut[facetIndex].functionSelectors[selectorIndex]);
                 }
             }
         }
