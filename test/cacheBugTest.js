@@ -6,6 +6,12 @@ const DiamondCutFacet = artifacts.require('DiamondCutFacet')
 const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const Test1Facet = artifacts.require('Test1Facet')
 
+const FacetCutAction = {
+  Add: 0,
+  Replace: 1,
+  Remove: 2
+}
+
 // The diamond example comes with 8 function selectors
 // [cut, loupe, loupe, loupe, loupe, erc165, transferOwnership, owner]
 // This bug manifests if you delete something from the final
@@ -53,7 +59,7 @@ contract('Cache bug test', async accounts => {
     web3.eth.defaultAccount = accounts[0]
 
     // Add functions
-    await diamondCutFacet.methods.diamondCut([[test1Facet.address, selectors]], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    await diamondCutFacet.methods.diamondCut([[test1Facet.address, FacetCutAction.Add, selectors]], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
 
     // Remove function selectors
     // Function selector for the owner function in slot 0
@@ -62,7 +68,7 @@ contract('Cache bug test', async accounts => {
       sel5,
       sel10
     ]
-    await diamondCutFacet.methods.diamondCut([[zeroAddress, selectors]], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    await diamondCutFacet.methods.diamondCut([[zeroAddress, FacetCutAction.Remove, selectors]], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
   })
 
   it('should not exhibit the cache bug', async () => {

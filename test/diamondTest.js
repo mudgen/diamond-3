@@ -7,6 +7,11 @@ const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const OwnershipFacet = artifacts.require('OwnershipFacet')
 const Test1Facet = artifacts.require('Test1Facet')
 const Test2Facet = artifacts.require('Test2Facet')
+const FacetCutAction = {
+  Add: 0,
+  Replace: 1,
+  Remove: 2
+}
 
 function getSelectors (contract) {
   const selectors = contract.abi.reduce((acc, val) => {
@@ -36,6 +41,8 @@ function findPositionInFacets (facetAddress, facets) {
 contract('DiamondTest', async (accounts) => {
   let diamondCutFacet
   let diamondLoupeFacet
+  // eslint-disable-next-line no-unused-vars
+  let ownershipFacet
   let diamond
   let test1Facet
   let test2Facet
@@ -53,7 +60,7 @@ contract('DiamondTest', async (accounts) => {
     // unfortunately this is done for the side affect of making selectors available in the ABI of
     // OwnershipFacet
     // eslint-disable-next-line no-unused-vars
-    const ownershipFacet = new web3.eth.Contract(OwnershipFacet.abi, diamond.address)
+    ownershipFacet = new web3.eth.Contract(OwnershipFacet.abi, diamond.address)
     web3.eth.defaultAccount = accounts[0]
   })
 
@@ -78,7 +85,7 @@ contract('DiamondTest', async (accounts) => {
   it('selectors should be associated to facets correctly -- multiple calls to facetAddress function', async () => {
     assert.equal(
       addresses[0],
-      await diamondLoupeFacet.methods.facetAddress('0xe712b4e1').call()
+      await diamondLoupeFacet.methods.facetAddress('0x1f931c1c').call()
     )
     assert.equal(
       addresses[1],
@@ -109,20 +116,29 @@ contract('DiamondTest', async (accounts) => {
   })
 
   it('should add test1 functions', async () => {
-    let selectors = getSelectors(test1Facet)
+    let selectors = getSelectors(test1Facet).slice(0, -1)
     addresses.push(test1Facet.address)
     await diamondCutFacet.methods
-      .diamondCut([[test1Facet.address, selectors]], zeroAddress, '0x')
+      .diamondCut([[test1Facet.address, FacetCutAction.Add, selectors]], zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 1000000 })
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     assert.sameMembers(result, selectors)
+  })
+
+  it('should replace test1 function', async () => {
+    let selectors = getSelectors(test1Facet).slice(-1)
+    await diamondCutFacet.methods
+      .diamondCut([[test1Facet.address, FacetCutAction.Replace, selectors]], zeroAddress, '0x')
+      .send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
+    assert.sameMembers(result, getSelectors(test1Facet))
   })
 
   it('should add test2 functions', async () => {
     const selectors = getSelectors(test2Facet)
     addresses.push(test2Facet.address)
     await diamondCutFacet.methods
-      .diamondCut([[test2Facet.address, selectors]], zeroAddress, '0x')
+      .diamondCut([[test2Facet.address, FacetCutAction.Add, selectors]], zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 1000000 })
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[4]).call()
     assert.sameMembers(result, selectors)
@@ -132,7 +148,7 @@ contract('DiamondTest', async (accounts) => {
     let selectors = getSelectors(test2Facet)
     let removeSelectors = [].concat(selectors.slice(0, 1), selectors.slice(4, 6), selectors.slice(-2))
     result = await diamondCutFacet.methods
-      .diamondCut([[zeroAddress, removeSelectors]], zeroAddress, '0x')
+      .diamondCut([[zeroAddress, FacetCutAction.Remove, removeSelectors]], zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 1000000 })
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[4]).call()
     selectors =
@@ -150,7 +166,7 @@ contract('DiamondTest', async (accounts) => {
     let removeSelectors = [].concat(selectors.slice(1, 2), selectors.slice(8, 10))
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     result = await diamondCutFacet.methods
-      .diamondCut([[zeroAddress, removeSelectors]], zeroAddress, '0x')
+      .diamondCut([[zeroAddress, FacetCutAction.Remove, removeSelectors]], zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 6000000 })
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     selectors = [].concat(selectors.slice(0, 1), selectors.slice(2, 8), selectors.slice(10))
@@ -167,22 +183,25 @@ contract('DiamondTest', async (accounts) => {
     removeItem(removeSelectors, '0x7a0ed627')
 
     result = await diamondCutFacet.methods
-      .diamondCut([[zeroAddress, removeSelectors]], zeroAddress, '0x')
+      .diamondCut([[zeroAddress, FacetCutAction.Remove, removeSelectors]], zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 6000000 })
     facets = await diamondLoupeFacet.methods.facets().call()
     assert.equal(facets.length, 2)
     assert.equal(facets[0][0], addresses[0])
-    assert.sameMembers(facets[0][1], ['0xe712b4e1'])
+    assert.sameMembers(facets[0][1], ['0x1f931c1c'])
     assert.equal(facets[1][0], addresses[1])
     assert.sameMembers(facets[1][1], ['0x7a0ed627'])
   })
 
   it('add most functions and facets', async () => {
     const diamondCut = []
-    diamondCut.push([addresses[1], getSelectors(DiamondLoupeFacet)])
-    diamondCut.push([addresses[2], getSelectors(OwnershipFacet)])
-    diamondCut.push([addresses[3], getSelectors(test1Facet)])
-    diamondCut.push([addresses[4], getSelectors(test2Facet)])
+    const selectors = getSelectors(DiamondLoupeFacet)
+    removeItem(selectors, '0x7a0ed627')
+    selectors.pop() // remove supportsInterface which will be added later
+    diamondCut.push([addresses[1], FacetCutAction.Add, selectors])
+    diamondCut.push([addresses[2], FacetCutAction.Add, getSelectors(OwnershipFacet)])
+    diamondCut.push([addresses[3], FacetCutAction.Add, getSelectors(test1Facet)])
+    diamondCut.push([addresses[4], FacetCutAction.Add, getSelectors(test2Facet)])
     result = await diamondCutFacet.methods
       .diamondCut(diamondCut, zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 6000000 })

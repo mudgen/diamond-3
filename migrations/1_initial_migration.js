@@ -1,3 +1,6 @@
+/* eslint-disable prefer-const */
+/* global artifacts */
+
 const Migrations = artifacts.require('Migrations')
 
 module.exports = function (deployer) {

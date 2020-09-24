@@ -17,43 +17,13 @@ import "./facets/DiamondLoupeFacet.sol";
 contract Diamond {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    constructor(address owner) payable {
+    constructor(address _owner, IDiamondCut.FacetCut[] memory diamondCut) payable {
+        LibDiamondCut.diamondCut(diamondCut, address(0), new bytes(0));
+
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        ds.contractOwner = owner;
-        emit OwnershipTransferred(address(0), owner);
-
-        DiamondCutFacet diamondCutFacet = new DiamondCutFacet();
-
-        DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
-
-        // Create a OwnershipFacet contract which implements the ERC-173 Ownership interface
-        OwnershipFacet ownershipFacet = new OwnershipFacet();
-
-        IDiamondCut.Facet[] memory diamondCut = new IDiamondCut.Facet[](3);
-
-        // adding diamondCut function
-        diamondCut[0].facetAddress = address(diamondCutFacet);
-        diamondCut[0].functionSelectors = new bytes4[](1);
-        diamondCut[0].functionSelectors[0] = DiamondCutFacet.diamondCut.selector;
-
-        // adding diamond loupe functions
-        diamondCut[1].facetAddress = address(diamondLoupeFacet);
-        diamondCut[1].functionSelectors = new bytes4[](5);
-        diamondCut[1].functionSelectors[0] = DiamondLoupeFacet.facetFunctionSelectors.selector;
-        diamondCut[1].functionSelectors[1] = DiamondLoupeFacet.facets.selector;
-        diamondCut[1].functionSelectors[2] = DiamondLoupeFacet.facetAddress.selector;
-        diamondCut[1].functionSelectors[3] = DiamondLoupeFacet.facetAddresses.selector;
-        diamondCut[1].functionSelectors[4] = DiamondLoupeFacet.supportsInterface.selector;
-
-        // adding ownership functions
-        diamondCut[2].facetAddress = address(ownershipFacet);
-        diamondCut[2].functionSelectors = new bytes4[](2);
-        diamondCut[2].functionSelectors[0] = OwnershipFacet.transferOwnership.selector;
-        diamondCut[2].functionSelectors[1] = OwnershipFacet.owner.selector;
-
-        // execute non-standard internal diamondCut function to add functions
-        LibDiamondCut.diamondCut(diamondCut);
-
+        ds.contractOwner = _owner;
+        emit OwnershipTransferred(address(0), _owner);   
+        
         // adding ERC165 data
         // ERC165
         ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;

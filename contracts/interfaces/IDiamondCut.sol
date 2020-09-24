@@ -7,8 +7,11 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 interface IDiamondCut {
-    struct Facet {
+    enum FacetCutAction {Add, Replace, Remove}
+
+    struct FacetCut {
         address facetAddress;
+        FacetCutAction action;
         bytes4[] functionSelectors;
     }
 
@@ -19,10 +22,10 @@ interface IDiamondCut {
     /// @param _calldata A function call, including function selector and arguments
     ///                  _calldata is executed with delegatecall on _init
     function diamondCut(
-        Facet[] calldata _diamondCut,
+        FacetCut[] calldata _diamondCut,
         address _init,
         bytes calldata _calldata
     ) external;
 
-    event DiamondCut(Facet[] _diamondCut, address _init, bytes _calldata);
+    event DiamondCut(FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
