@@ -45,11 +45,7 @@ contract Diamond {
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        LibDiamondStorage.DiamondStorage storage ds;
-        bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
-        assembly {
-            ds.slot := position
-        }
+        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {
