@@ -1,1 +1,0 @@
-[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes[]","name":"_diamondCut","type":"bytes[]"},{"indexed":false,"internalType":"address","name":"_init","type":"address"},{"indexed":false,"internalType":"bytes","name":"_calldata","type":"bytes"}],"name":"DiamondCut","type":"event"}]
