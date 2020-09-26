@@ -17,8 +17,8 @@ import "./facets/DiamondLoupeFacet.sol";
 contract Diamond {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    constructor(address _owner, IDiamondCut.FacetCut[] memory diamondCut) payable {
-        LibDiamondCut.diamondCut(diamondCut, address(0), new bytes(0));
+    constructor(address _owner, IDiamondCut.FacetCut[] memory _diamondCut) payable {
+        LibDiamondCut.diamondCut(_diamondCut, address(0), new bytes(0));
 
         LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
         ds.contractOwner = _owner;
