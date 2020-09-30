@@ -38,6 +38,6 @@ module.exports = function (deployer, network, accounts) {
       [DiamondLoupeFacet.address, FacetCutAction.Add, getSelectors(DiamondLoupeFacet)],
       [OwnershipFacet.address, FacetCutAction.Add, getSelectors(OwnershipFacet)]
     ]
-    return deployer.deploy(Diamond, accounts[0], diamondCut)
+    return deployer.deploy(Diamond, diamondCut, accounts[0])
   })
 }
