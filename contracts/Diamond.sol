@@ -8,45 +8,46 @@ pragma experimental ABIEncoderV2;
 * Implementation of an example of a diamond.
 /******************************************************************************/
 
-import "./libraries/LibDiamondStorage.sol";
-import "./libraries/LibDiamondCut.sol";
-import "./facets/OwnershipFacet.sol";
-import "./facets/DiamondCutFacet.sol";
-import "./facets/DiamondLoupeFacet.sol";
+import "./libraries/LibDiamond.sol";
+import "./interfaces/IDiamondLoupe.sol";
+import "./interfaces/IDiamondCut.sol";
+import "./interfaces/IERC173.sol";
+import "./interfaces/IERC165.sol";
 
 contract Diamond {
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, address _owner) payable {
-        LibDiamondCut.diamondCut(_diamondCut, address(0), new bytes(0));
+        LibDiamond.diamondCut(_diamondCut, address(0), new bytes(0));
+        LibDiamond.setContractOwner(_owner);
 
-        LibDiamondStorage.DiamondStorage storage ds = LibDiamondStorage.diamondStorage();
-        ds.contractOwner = _owner;
-        emit OwnershipTransferred(address(0), _owner);   
-        
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+                        
         // adding ERC165 data
         // ERC165
         ds.supportedInterfaces[IERC165.supportsInterface.selector] = true;
 
         // DiamondCut
-        ds.supportedInterfaces[DiamondCutFacet.diamondCut.selector] = true;
+        ds.supportedInterfaces[IDiamondCut.diamondCut.selector] = true;
 
-        // DiamondLoupe
-        bytes4 interfaceID = IDiamondLoupe.facets.selector ^
+        // DiamondLoupe        
+        ds.supportedInterfaces[
+            IDiamondLoupe.facets.selector ^
             IDiamondLoupe.facetFunctionSelectors.selector ^
             IDiamondLoupe.facetAddresses.selector ^
-            IDiamondLoupe.facetAddress.selector;
-        ds.supportedInterfaces[interfaceID] = true;
+            IDiamondLoupe.facetAddress.selector
+        ] = true;
 
         // ERC173
-        ds.supportedInterfaces[IERC173.transferOwnership.selector ^ IERC173.owner.selector] = true;
+        ds.supportedInterfaces[
+            IERC173.transferOwnership.selector ^ 
+            IERC173.owner.selector
+        ] = true;
     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        LibDiamondStorage.DiamondStorage storage ds;
-        bytes32 position = LibDiamondStorage.DIAMOND_STORAGE_POSITION;
+        LibDiamond.DiamondStorage storage ds;
+        bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position
         }
