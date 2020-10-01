@@ -24,7 +24,7 @@ library LibDiamondCut {
         IDiamondCut.FacetCut[] memory _diamondCut,
         address _init,
         bytes memory _calldata
-    ) internal {        
+    ) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             addReplaceRemoveFacetSelectors(
                 _diamondCut[facetIndex].facetAddress,
@@ -96,9 +96,9 @@ library LibDiamondCut {
         // replace selector with last selector, then delete last selector
         uint256 selectorPosition = ds.selectorToFacetAndPosition[_selector].functionSelectorPosition;
         uint256 lastSelectorPosition = ds.facetFunctionSelectors[_oldFacetAddress].functionSelectors.length - 1;
-        bytes4 lastSelector = ds.facetFunctionSelectors[_oldFacetAddress].functionSelectors[lastSelectorPosition];
         // if not the same then replace _selector with lastSelector
-        if (lastSelector != _selector) {
+        if (selectorPosition != lastSelectorPosition) {
+            bytes4 lastSelector = ds.facetFunctionSelectors[_oldFacetAddress].functionSelectors[lastSelectorPosition];
             ds.facetFunctionSelectors[_oldFacetAddress].functionSelectors[selectorPosition] = lastSelector;
             ds.selectorToFacetAndPosition[lastSelector].functionSelectorPosition = uint16(selectorPosition);
         }
@@ -110,9 +110,9 @@ library LibDiamondCut {
         if (lastSelectorPosition == 0) {
             // replace facet address with last facet address and delete last facet address
             uint256 lastFacetAddressPosition = ds.facetAddresses.length - 1;
-            address lastFacetAddress = ds.facetAddresses[lastFacetAddressPosition];
             uint256 facetAddressPosition = ds.facetFunctionSelectors[_oldFacetAddress].facetAddressPosition;
-            if (_oldFacetAddress != lastFacetAddress) {
+            if (facetAddressPosition != lastFacetAddressPosition) {
+                address lastFacetAddress = ds.facetAddresses[lastFacetAddressPosition];
                 ds.facetAddresses[facetAddressPosition] = lastFacetAddress;
                 ds.facetFunctionSelectors[lastFacetAddress].facetAddressPosition = uint16(facetAddressPosition);
             }
