@@ -125,6 +125,11 @@ contract('DiamondTest', async (accounts) => {
     assert.sameMembers(result, selectors)
   })
 
+  it('should test function call', async () => {
+    const test1FacetDiamond = new web3.eth.Contract(Test1Facet.abi, diamond.address)
+    await test1FacetDiamond.methods.test1Func10().send({ from: web3.eth.defaultAccount, gas: 1000000 })
+  })
+
   it('should replace test1 function', async () => {
     let selectors = getSelectors(test1Facet).slice(-1)
     await diamondCutFacet.methods
