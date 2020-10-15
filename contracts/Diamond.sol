@@ -3,9 +3,9 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
-* Author: Nick Mudge
+* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
 *
-* Implementation of an example of a diamond.
+* Implementation of a diamond.
 /******************************************************************************/
 
 import "./libraries/LibDiamond.sol";
@@ -20,8 +20,8 @@ contract Diamond {
         LibDiamond.setContractOwner(_owner);
 
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-                        
-          // adding ERC165 data
+
+        // adding ERC165 data
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
