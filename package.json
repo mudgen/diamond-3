@@ -1,6 +1,6 @@
 {
   "name": "diamond-3",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
