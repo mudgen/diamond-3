@@ -47,7 +47,7 @@ contract('DiamondTest', async (accounts) => {
   let test1Facet
   let test2Facet
   let result
-  let addresses
+  let addresses = []
 
   const zeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -65,7 +65,10 @@ contract('DiamondTest', async (accounts) => {
   })
 
   it('should have three facets -- call to facetAddresses function', async () => {
-    addresses = await diamondLoupeFacet.methods.facetAddresses().call()
+    for (const address of await diamondLoupeFacet.methods.facetAddresses().call()) {
+      addresses.push(address)
+    }
+
     // console.log(addresses)
     assert.equal(addresses.length, 3)
   })
