@@ -7,6 +7,7 @@ const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const OwnershipFacet = artifacts.require('OwnershipFacet')
 const Test1Facet = artifacts.require('Test1Facet')
 const Test2Facet = artifacts.require('Test2Facet')
+
 const FacetCutAction = {
   Add: 0,
   Replace: 1,
