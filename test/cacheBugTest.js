@@ -59,7 +59,11 @@ contract('Cache bug test', async accounts => {
     web3.eth.defaultAccount = accounts[0]
 
     // Add functions
-    await diamondCutFacet.methods.diamondCut([[test1Facet.address, FacetCutAction.Add, selectors]], zeroAddress, '0x').send({ from: web3.eth.defaultAccount, gas: 1000000 })
+    await diamondCutFacet.methods.diamondCut(
+      [[test1Facet.address, FacetCutAction.Add, selectors]],
+      zeroAddress,
+      '0x')
+      .send({ from: web3.eth.defaultAccount, gas: 1000000 })
 
     // Remove function selectors
     // Function selector for the owner function in slot 0

@@ -29,20 +29,22 @@ function getSelectors (contract) {
 module.exports = async () => {
   // eslint-disable-next-line no-undef
   const accounts = await ethers.getSigners()
-  const admin = accounts[1]
+  const admin = accounts[0]
 
   const cutFacet = await DiamondCutFacet.new()
   DiamondCutFacet.setAsDeployed(cutFacet)
   const loupeFacet = await DiamondLoupeFacet.new()
   DiamondLoupeFacet.setAsDeployed(loupeFacet)
+  const ownershipFacet = await OwnershipFacet.new()
+  OwnershipFacet.setAsDeployed(ownershipFacet)
 
   const diamondCut = [
-    [DiamondCutFacet.address, FacetCutAction.Add, getSelectors(DiamondCutFacet)],
-    [DiamondLoupeFacet.address, FacetCutAction.Add, getSelectors(DiamondLoupeFacet)],
-    [OwnershipFacet.address, FacetCutAction.Add, getSelectors(OwnershipFacet)]
+    [cutFacet.address, FacetCutAction.Add, getSelectors(cutFacet)],
+    [loupeFacet.address, FacetCutAction.Add, getSelectors(loupeFacet)],
+    [ownershipFacet.address, FacetCutAction.Add, getSelectors(ownershipFacet)]
   ]
 
-  const diamond = await Diamond.new(diamondCut, admin)
+  const diamond = await Diamond.new(diamondCut, [admin.address])
   Diamond.setAsDeployed(diamond)
 
   const test1Facet = await Test1Facet.new()
