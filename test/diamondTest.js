@@ -7,6 +7,7 @@ const DiamondLoupeFacet = artifacts.require('DiamondLoupeFacet')
 const OwnershipFacet = artifacts.require('OwnershipFacet')
 const Test1Facet = artifacts.require('Test1Facet')
 const Test2Facet = artifacts.require('Test2Facet')
+
 const FacetCutAction = {
   Add: 0,
   Replace: 1,
@@ -117,7 +118,7 @@ contract('DiamondTest', async (accounts) => {
     assert.sameMembers(result[2].functionSelectors, selectors)
     assert.equal(result.length, 3)
   })
-
+  /*
   it('should add test1 functions', async () => {
     let selectors = getSelectors(test1Facet).slice(0, -1)
     addresses.push(test1Facet.address)
@@ -141,7 +142,7 @@ contract('DiamondTest', async (accounts) => {
     result = await diamondLoupeFacet.methods.facetFunctionSelectors(addresses[3]).call()
     assert.sameMembers(result, getSelectors(test1Facet))
   })
-
+  */
   it('should add test2 functions', async () => {
     const selectors = getSelectors(test2Facet)
     addresses.push(test2Facet.address)
@@ -168,7 +169,7 @@ contract('DiamondTest', async (accounts) => {
       )
     assert.sameMembers(result, selectors)
   })
-
+  /*
   it('should remove some test1 functions', async () => {
     let selectors = getSelectors(test1Facet)
     let removeSelectors = [].concat(selectors.slice(1, 2), selectors.slice(8, 10))
@@ -180,7 +181,7 @@ contract('DiamondTest', async (accounts) => {
     selectors = [].concat(selectors.slice(0, 1), selectors.slice(2, 8), selectors.slice(10))
     assert.sameMembers(result, selectors)
   })
-
+  */
   it('remove all functions and facets accept diamondCut and facets', async () => {
     let removeSelectors = []
     let facets = await diamondLoupeFacet.methods.facets().call()
@@ -202,14 +203,15 @@ contract('DiamondTest', async (accounts) => {
   })
 
   it('add most functions and facets', async () => {
+    console.log('web3.eth.defaultAccount:', web3.eth.defaultAccount)
     const diamondCut = []
     const selectors = getSelectors(DiamondLoupeFacet)
     removeItem(selectors, '0x7a0ed627')
     selectors.pop() // remove supportsInterface which will be added later
     diamondCut.push([addresses[1], FacetCutAction.Add, selectors])
     diamondCut.push([addresses[2], FacetCutAction.Add, getSelectors(OwnershipFacet)])
-    diamondCut.push([addresses[3], FacetCutAction.Add, getSelectors(test1Facet)])
-    diamondCut.push([addresses[4], FacetCutAction.Add, getSelectors(test2Facet)])
+    diamondCut.push([addresses[3], FacetCutAction.Add, getSelectors(Test1Facet)])
+    diamondCut.push([addresses[4], FacetCutAction.Add, getSelectors(Test2Facet)])
     result = await diamondCutFacet.methods
       .diamondCut(diamondCut, zeroAddress, '0x')
       .send({ from: web3.eth.defaultAccount, gas: 6000000 })
@@ -226,7 +228,7 @@ contract('DiamondTest', async (accounts) => {
     assert.sameMembers(facets[findPositionInFacets(addresses[0], facets)][1], getSelectors(DiamondCutFacet))
     assert.sameMembers(facets[findPositionInFacets(addresses[1], facets)][1], removeItem(getSelectors(DiamondLoupeFacet), '0x01ffc9a7'))
     assert.sameMembers(facets[findPositionInFacets(addresses[2], facets)][1], getSelectors(OwnershipFacet))
-    assert.sameMembers(facets[findPositionInFacets(addresses[3], facets)][1], getSelectors(test1Facet))
-    assert.sameMembers(facets[findPositionInFacets(addresses[4], facets)][1], getSelectors(test2Facet))
+    assert.sameMembers(facets[findPositionInFacets(addresses[3], facets)][1], getSelectors(Test1Facet))
+    assert.sameMembers(facets[findPositionInFacets(addresses[4], facets)][1], getSelectors(Test2Facet))
   })
 })

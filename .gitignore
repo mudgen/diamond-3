@@ -1,8 +1,13 @@
-node_modules
-build
-.etherlime-store
-coverage
-stuff.txt
-deployment/deploy.js
+# IDEs
 .vscode
-bin
+.idea
+
+# Deps
+node_modules
+
+# Hardhat
+artifacts
+build
+cache
+coverage
+coverage.json

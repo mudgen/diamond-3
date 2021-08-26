@@ -41,13 +41,16 @@ module.exports = {
     // You should run a client (like ganache-cli, geth or parity) in a separate terminal
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
-    //
+    /*
     development: {
-      host: '127.0.0.1', // Localhost (default: none)
-      port: 8545, // Standard Ethereum port (default: none)
+      host: '127.0.0.1', // (default: none)
+      port: 8545, // Standard Ethereum port: 8545 (default: none)
       network_id: '*' // Any network (default: none)
     }
-
+    */
+    hardhat: {
+      network_id: '31337' // Hardhat own networkId
+    }
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -76,7 +79,6 @@ module.exports = {
     // production: true    // Treats this network as if it was a public net. (default: false)
     // }
   },
-
   // Set default mocha options here, use special reporters etc.
   mocha: {
     // reporter: 'eth-gas-reporter'
@@ -86,11 +88,11 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: '0.7.6', // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.8.1', // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       settings: { // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
-          enabled: true,
+          enabled: false, // Optimization is currently disabled due to "CompilerError: Stack too deep when compiling inline assembly: Variable dataEnd is 1 slot(s) too deep inside the stack."
           runs: 9000000
         }
         //  evmVersion: "byzantium"
